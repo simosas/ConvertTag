@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Siemens.Engineering">
+      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\PublicAPI\V19\Siemens.Engineering.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.Engineering.Contract">
+      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\Bin\PublicAPI\Siemens.Engineering.Contract.dll</HintPath>
+    </Reference>
+    <Reference Include="Siemens.Engineering.Hmi">
+      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\PublicAPI\V19\Siemens.Engineering.Hmi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
