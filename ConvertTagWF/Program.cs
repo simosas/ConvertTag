@@ -719,19 +719,27 @@ namespace ConvertTagWF
             */
         }
 
+ 
+
         [STAThread]
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
-            //SchneiderSiemensProgramBlocks(@"C:\Users\sulci\Desktop\siemens program blocks\INL01_KH_Uzkrovimas_18505.xml");
+            
 
             /*
              * prie program blocku konvertavimu tag'u pridet DB pavadinima?
-             
+             * delta isp siemens db funkcija (nebutina)
+             * delta isp siemens programa (nebutina)
+             * atkartot memory mapper: paimt nukopijuota schneider var sarasa, pridet AT atmintis kur truksta, esancias AT atmintis palikt vietoj (padaryt pasirinkima?)
+             * atkartot eksporta i delta, kazkaip nustatyt koks etherlink prefixas
+             * padaryt winforms programa 
+             * automatinis failu atpazinimas konvertavimui?
+             * konvertavimas is siemens i delta/schneider(tikriausiai useless)
              
              
              */
-            //DeltaSiemensHmiModbus(@"C:\Users\sulci\Desktop\modbus\BoenVars.csv");
+            
             string file = string.Empty;
             try
             {
