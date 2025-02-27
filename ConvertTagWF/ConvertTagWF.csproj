@@ -12,16 +12,4 @@
     <PackageReference Include="ClosedXML" Version="0.104.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Siemens.Engineering">
-      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\PublicAPI\V19\Siemens.Engineering.dll</HintPath>
-    </Reference>
-    <Reference Include="Siemens.Engineering.Contract">
-      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\Bin\PublicAPI\Siemens.Engineering.Contract.dll</HintPath>
-    </Reference>
-    <Reference Include="Siemens.Engineering.Hmi">
-      <HintPath>..\..\..\..\..\Program Files\Siemens\Automation\Portal V19\PublicAPI\V19\Siemens.Engineering.Hmi.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

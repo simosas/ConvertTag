@@ -5,7 +5,6 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
 using System.Collections;
-using Siemens.Engineering;
 namespace ConvertTagWF
 {
     internal static class Program
