@@ -5,8 +5,6 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
 using System.Collections;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.Vml;
 namespace ConvertTagWF
 {
     internal static class Program
@@ -100,15 +98,6 @@ namespace ConvertTagWF
         public static Dictionary<string, int> TypeLength = new Dictionary<string, int>()
         {
             {"UInt",2 }, {"Int",2 }, {"USInt",1 }, {"String", 254}, {"DateTime", 8}, {"DInt", 4}, {"LReal", 8}, {"Real", 4}, {"Bool", 1}, {"Boolean", 1}, {"UInt16", 2}, {"Bit", 1}
-        };
-
-
-        public static Dictionary<string, int> SchneiderDataTypes = new Dictionary<string, int>()
-        {
-            {"BOOL", 8 }, {"BYTE", 8}, {"WORD", 16}, {"DWORD", 32}, {"LWORD", 64}, {"SINT", 8}, {"USINT", 8},
-            {"INT", 16 }, {"UINT", 16}, {"DINT", 32}, {"UDINT", 32}, {"LINT", 64}, {"ULINT", 64}, {"REAL", 32},
-            {"LREAL", 64 }, {"STRING", 64}, {"WSTRING", 256}, {"TIME", 32}
-
         };
 
         static void DeltaSiemensHmiOPCUA(string file)
@@ -358,8 +347,8 @@ namespace ConvertTagWF
 
             //
             StreamReader sr = new StreamReader(file);
-            StreamWriter sw = new StreamWriter(System.IO.Path.GetFileName(file) + ".db");
-            sw.WriteLine("DATA_BLOCK \"" + System.IO.Path.GetFileName(file) + "\"");
+            StreamWriter sw = new StreamWriter(Path.GetFileName(file) + ".db");
+            sw.WriteLine("DATA_BLOCK \"" + Path.GetFileName(file) + "\"");
             sw.WriteLine("{ S7_Optimized_Access := 'TRUE' }");
             sw.WriteLine("VERSION : 0.1");
             sw.WriteLine("NON_RETAIN");
@@ -402,8 +391,8 @@ namespace ConvertTagWF
         {
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(file);
-            StreamWriter sw = new StreamWriter(System.IO.Path.GetFileName(file) + ".db");
-            sw.WriteLine("DATA_BLOCK \"" + System.IO.Path.GetFileName(file) + "\"");
+            StreamWriter sw = new StreamWriter(Path.GetFileName(file) + ".db");
+            sw.WriteLine("DATA_BLOCK \"" + Path.GetFileName(file) + "\"");
             sw.WriteLine("{ S7_Optimized_Access := 'TRUE' }");
             sw.WriteLine("VERSION : 0.1");
             sw.WriteLine("NON_RETAIN");
@@ -419,7 +408,7 @@ namespace ConvertTagWF
                 {
                     sw.WriteLine(node.Attributes[0].Value + " : " + "Struct");
                     Console.WriteLine("UDT: " + node.Attributes[0].Value);
-                    StreamWriter udt = new StreamWriter(System.IO.Path.GetDirectoryName(file) + "\\" + node.Attributes[0].Value + ".udt"); // user defined type
+                    StreamWriter udt = new StreamWriter(Path.GetDirectoryName(file) + "\\" + node.Attributes[0].Value + ".udt"); // user defined type
                     udt.WriteLine("TYPE \"" + node.Attributes[0].Value + "\"");
                     udt.WriteLine("VERSION : 0.1");
                     udt.WriteLine("   STRUCT");
@@ -730,158 +719,27 @@ namespace ConvertTagWF
             */
         }
 
-        [STAThread] //reikalingas clipboard priejimui
-       static void AutoMapping() // jei ijungtas, paimt teksta is clipboard, nusiust memory mappingo funkcijai, ikelt pakeista teksta atgal i clipboard
-        {
-            Thread.Sleep(200);
-            var a = Clipboard.GetText();
-            if (a.Contains("VAR_") && a.Contains("END_VAR"))
-            {
-                SchneiderMemMapper(a);
-                return;
-            }
-            AutoMapping();
-        }
-
-
-        static void SchneiderMemMapper(string text) // text is clipboard 
-        {
-            // 1,048,560 bit (65535 word * 16)
-            /* schneider atmintis skirstoma i M+ 
-             * X - bit (1)
-             * B - byte (8)
-             * W - word (16)
-             * D - double word (32)
-             * L - long (64)
-             * long uzima 8 baitus bet gali prasitest toliau. jei uzima daugiau nei 8, rezervuoja toliau esancius 8 net jei neuzpildo ju
-             * struct = long, reikia rast juos kopijuotam tekste ir priskirt kaip nauja duomenu tipa suskaiciavus vidini kintamuju dydi (long rezervacija galioja)
-             * data tipus ToUpper del visa ko
-             */
-
-            /*
-             * pradet nuo struct/ didziausiu?
-             * laisvos vietos radimo ciklas
  
-             * schneider bool uzima visus 8 bitus(?)
-             * array gali but map'intas tik jei global var, dydis yra tipas * kiekis
-             * array mapint paskutinius kad butu galima rast kintamuosius, jei dydis nurodytas kintamaisiais?
-             * string ir wstring deklaruojami su skliaustais nurodanciais dydi. string 1 char = 1 byte, wstring 1 char = 1 word
-             */
-
-            bool[] mem = new bool[10485600];
-            var lines = text.Split(new[] { '\r', '\n' });
-
-            //rast struct, sudet i duomenu tipu sarasa 
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (lines[i].Contains("TYPE") && lines[i].Contains(":"))
-                {
-                    string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", ""); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
-                    double struct_memlength = 0; // visada bus int bet double reikalingas skaiciavimui veliau
-                    while (!lines[i].Contains("END_TYPE"))
-                    {
-                        if (lines[i].Contains(":") && lines[i].Contains(";"))
-                        {
-                          
-                            string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).Replace(" ", "").ToUpper(); // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
-                            struct_memlength += SchneiderDataTypes[type];
-                        }
-
-                        i++;
-                    }
-                    //var ab = Math.Ceiling(65.0 / 64.0) * 64;
-                    struct_memlength = Math.Ceiling(struct_memlength/64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
-                    SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength));
-                    Console.WriteLine("struct " + struct_name + " length " +  struct_memlength);
-                }
-            }
-
-
-            // rast zodi TYPE, is tos eilutes isfiltruot TYPE, :, tarpus kad gaut pavadinima
-            // eit toliau iki END_TYPE, kintamuosius atpazint pagal : ir ; kad gaut pavadinima substring tarp tu dvieju simboliu ir isfiltruot tarpus
-            // tikrinant SchneiderDataTypes, jei randa tinkama zodi tai prie atminties total pridet tipo dydi
-            
-
-
-
-
-            // rast jau sumapintus kintamuosius
-            foreach (string line in lines) 
-            {
-                if (line.Contains("%M"))
-                {
-                    char identifier = line[line.IndexOf('%') + 2]; // rast kokia raide eina po %M
-                    int mem_dydis;
-                    switch (identifier)
-                    {
-                        case 'X':
-                            mem_dydis = 8;
-                            break;
-                        case 'B':
-                            mem_dydis = 8;
-                            break;
-                        case 'W':
-                            mem_dydis = 16;
-                            break;
-                        case 'D':
-                            mem_dydis = 32;
-                            break;
-                        case 'L':
-                            string type = (line.Substring(line.IndexOf(':') + 1, line.IndexOf(";") - (line.IndexOf(':') + 1))).Replace(" ", "");
-                            mem_dydis = SchneiderDataTypes[type];
-                            break;
-                        default: throw new Exception("bruh");
-                            
-                    }
-
-                    // %MX100.0 = rast %, eit 3 i prieki (skaiciaus pradzia), eiti iki : zenklo  kad gaut skaiciu
-                    string s = line.Substring(line.IndexOf('%') + 3, line.IndexOf(':') - (line.IndexOf('%') + 3)); 
-                    // gautas rezultatas gali but 101.0 tai pirma convert i double ir tik tada i int kad isvengt klaidos
-                    int mem_addr = Convert.ToInt32(Convert.ToDouble(s));
-                    int temp = mem_addr * mem_dydis;
-                    Console.WriteLine("mem:" + temp + " to " + (temp + mem_dydis));
-                    for (int i = temp; i < (temp + mem_dydis); i++)
-                        mem[i] = true;
-
-                    
-
-
-                }
-            }
-            // sumappint likusius, pradedant nuo struct, baigiant string (del visa ko kad galbut galetu islipt is ribu del dydzio)
-            
-
-
-
-
-
-
-
-        }
 
         [STAThread]
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
             
-            
-            AutoMapping();
-            //SchneiderMemMapper("a");
-
 
             /*
-
+             * prie program blocku konvertavimu tag'u pridet DB pavadinima?
+             * delta isp siemens db funkcija (nebutina)
+             * delta isp siemens programa (nebutina)
              * atkartot memory mapper: paimt nukopijuota schneider var sarasa, pridet AT atmintis kur truksta, esancias AT atmintis palikt vietoj (padaryt pasirinkima?)
              * atkartot eksporta i delta, kazkaip nustatyt koks etherlink prefixas
              * padaryt winforms programa 
              * automatinis failu atpazinimas konvertavimui?
              * konvertavimas is siemens i delta/schneider(tikriausiai useless)
-             * prie program blocku konvertavimu tag'u pridet DB pavadinima?
-             * delta isp siemens db funkcija (nebutina)
-             * delta isp siemens programa (nebutina)
+             
              
              */
-
+            
             string file = string.Empty;
             try
             {
@@ -895,6 +753,7 @@ namespace ConvertTagWF
             }
 
             // arg 0 = filename
+            // detect which kinda file is dragged on
             Console.WriteLine("1. Delta DOPSoft - Siemens PLC DB");
             Console.WriteLine("2. Schneider - Siemens PLC DB");
             Console.WriteLine("3. Schneider - Siemens HMI tags");
