@@ -211,7 +211,7 @@ namespace ConvertTagWF
                         string siemens_modbus_addr = "4x4"; // 4x400001.1 - 4x465535.16
                         if (attribs[2].Contains("EtherLink"))
                         {
-                            string modbus_addr = attribs[2].Remove(0, attribs[2].IndexOf('-') + 1); // 1.00 || 1
+                            string modbus_addr = attribs[2].Remove(0, attribs[2].IndexOf('-') +1); // 1.00 || 1
                             int modbus_bit;
                             // jei randa taska, isimt taskas +1, pridet +1 prie likusio skaiciaus po tasko kad gaut bito nr
                             // skaiciu pries taska naudot kaip word adresa 
@@ -225,7 +225,7 @@ namespace ConvertTagWF
                             {
                                 modbus_bit = -1;
                             };
-
+                            
                             for (int i = 0; i < (5 - modbus_addr.Length); i++)
                             {
                                 siemens_modbus_addr += "0";
@@ -253,7 +253,7 @@ namespace ConvertTagWF
                         }
 
                         //
-
+                       
                         for (int i = 0; i < results.Count; i++)
                         {
                             worksheet.Cell(raides[i] + count.ToString()).Value = results[i];
@@ -489,33 +489,33 @@ namespace ConvertTagWF
 
         static void SchneiderSiemensProgramBlocks(string file)
         {
-
+         
             // siemens xml export - siemens import 
             string documentation = "";
             FileInfo fi = new FileInfo(file);
 
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(file);
-
+            
             foreach (XmlNode node in xmlDocument.ChildNodes[1].ChildNodes[2].ChildNodes[1]) // node = program blokas
             {
                 //
                 string blockname = node.Attributes[0].Value;
                 string returntype = "n";
-                Dictionary<string, string> specialus = new Dictionary<string, string>(); // timeriai, counteriai
+                Dictionary<string,string> specialus = new Dictionary<string,string>(); // timeriai, counteriai
 
-                if (node.ChildNodes[0].ChildNodes.Count > 0)
-                {
-                    if (node.ChildNodes[0].ChildNodes[0].Name == "returnType")
+                    if (node.ChildNodes[0].ChildNodes.Count > 0)
                     {
-                        returntype = node.ChildNodes[0].ChildNodes[0].ChildNodes[0].Name;
+                        if (node.ChildNodes[0].ChildNodes[0].Name == "returnType")
+                        {
+                            returntype = node.ChildNodes[0].ChildNodes[0].ChildNodes[0].Name;
+                        }
                     }
-                }
+                    
 
-
-                // codesys leidzia funkcijos vardui priskirt kintamaji ir taip returnint rezultata, siemens negali, reikia rast return tipa ir sukurt papildoma kintamaji kuriuo pakeiciami tie returnai
+                 // codesys leidzia funkcijos vardui priskirt kintamaji ir taip returnint rezultata, siemens negali, reikia rast return tipa ir sukurt papildoma kintamaji kuriuo pakeiciami tie returnai
                 bool turioutput = false;
-                StreamWriter sw = new StreamWriter(fi.Directory + "\\" + blockname + ".scl");
+                StreamWriter sw = new StreamWriter(fi.Directory + "\\"+ blockname + ".scl");
                 sw.WriteLine("FUNCTION_BLOCK " + blockname);
                 sw.WriteLine("{ S7_Optimized_Access := 'TRUE' }");
                 sw.WriteLine("VERSION : 0.1");
@@ -539,7 +539,7 @@ namespace ConvertTagWF
                             {
                                 sw.WriteLine(variable.Attributes[0].InnerText.Replace("\"", "") + " : " + variable.ChildNodes[0].ChildNodes[0].Name + ";");
                             }
-
+                                
                             else
                             {
                                 specialus.Add(variable.Attributes[0].InnerText.Replace("\"", ""), variable.ChildNodes[0].ChildNodes[0].Attributes[0].ChildNodes[0].InnerText);
@@ -567,7 +567,7 @@ namespace ConvertTagWF
                             sw.WriteLine(blockname + "_out_var" + " : " + returntype + ";");
                         sw.WriteLine("   END_VAR");
                     }
-                    if (varnode.Name == "localVars")
+                     if (varnode.Name == "localVars")
                     {
                         sw.WriteLine("   VAR");
                         foreach (XmlNode variable in varnode.ChildNodes)
@@ -576,12 +576,12 @@ namespace ConvertTagWF
                             {
                                 sw.WriteLine(variable.Attributes[0].InnerText.Replace("\"", "") + " : " + variable.ChildNodes[0].ChildNodes[0].Name + ";");
                             }
-
+                                
                             else
                             {
                                 specialus.Add(variable.Attributes[0].InnerText.Replace("\"", ""), variable.ChildNodes[0].ChildNodes[0].Attributes[0].ChildNodes[0].InnerText);
                             }
-
+                               
                         }
                         sw.WriteLine("   END_VAR");
 
@@ -591,7 +591,7 @@ namespace ConvertTagWF
                 if (!turioutput && returntype != "n")
                 {
                     sw.WriteLine("   VAR_OUTPUT");
-                    sw.WriteLine(blockname + "_out_var" + " : " + returntype + ";");
+                    sw.WriteLine(blockname + "_out_var" + " : " + returntype +";");
                     sw.WriteLine("   END_VAR");
                 }
                 sw.WriteLine("BEGIN\n");
@@ -615,8 +615,8 @@ namespace ConvertTagWF
                 sw.WriteLine("\nEND_FUNCTION_BLOCK");
 
 
-                sw.Close();
-
+                sw.Close(); 
+                
                 /*
                  * 
                  * pou attribute 0.value - pavadinimas
@@ -731,7 +731,7 @@ namespace ConvertTagWF
         }
 
         [STAThread] //reikalingas clipboard priejimui
-        static void AutoMapping() // jei ijungtas, paimt teksta is clipboard, nusiust memory mappingo funkcijai, ikelt pakeista teksta atgal i clipboard
+       static void AutoMapping() // jei ijungtas, paimt teksta is clipboard, nusiust memory mappingo funkcijai, ikelt pakeista teksta atgal i clipboard
         {
             Thread.Sleep(200);
             var a = Clipboard.GetText();
@@ -782,7 +782,7 @@ namespace ConvertTagWF
                     {
                         if (lines[i].Contains(":") && lines[i].Contains(";"))
                         {
-
+                          
                             string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).Replace(" ", "").ToUpper(); // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
                             struct_memlength += SchneiderDataTypes[type];
                         }
@@ -790,9 +790,9 @@ namespace ConvertTagWF
                         i++;
                     }
                     //var ab = Math.Ceiling(65.0 / 64.0) * 64;
-                    struct_memlength = Math.Ceiling(struct_memlength / 64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
+                    struct_memlength = Math.Ceiling(struct_memlength/64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
                     SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength));
-                    Console.WriteLine("struct " + struct_name + " length " + struct_memlength);
+                    Console.WriteLine("struct " + struct_name + " length " +  struct_memlength);
                 }
             }
 
@@ -800,13 +800,13 @@ namespace ConvertTagWF
             // rast zodi TYPE, is tos eilutes isfiltruot TYPE, :, tarpus kad gaut pavadinima
             // eit toliau iki END_TYPE, kintamuosius atpazint pagal : ir ; kad gaut pavadinima substring tarp tu dvieju simboliu ir isfiltruot tarpus
             // tikrinant SchneiderDataTypes, jei randa tinkama zodi tai prie atminties total pridet tipo dydi
-
+            
 
 
 
 
             // rast jau sumapintus kintamuosius
-            foreach (string line in lines)
+            foreach (string line in lines) 
             {
                 if (line.Contains("%M"))
                 {
@@ -831,11 +831,11 @@ namespace ConvertTagWF
                             mem_dydis = SchneiderDataTypes[type];
                             break;
                         default: throw new Exception("bruh");
-
+                            
                     }
 
                     // %MX100.0 = rast %, eit 3 i prieki (skaiciaus pradzia), eiti iki : zenklo  kad gaut skaiciu
-                    string s = line.Substring(line.IndexOf('%') + 3, line.IndexOf(':') - (line.IndexOf('%') + 3));
+                    string s = line.Substring(line.IndexOf('%') + 3, line.IndexOf(':') - (line.IndexOf('%') + 3)); 
                     // gautas rezultatas gali but 101.0 tai pirma convert i double ir tik tada i int kad isvengt klaidos
                     int mem_addr = Convert.ToInt32(Convert.ToDouble(s));
                     int temp = mem_addr * mem_dydis;
@@ -843,13 +843,13 @@ namespace ConvertTagWF
                     for (int i = temp; i < (temp + mem_dydis); i++)
                         mem[i] = true;
                     //
-
+                    
 
 
                 }
             }
             // sumappint likusius, pradedant nuo struct, baigiant string (del visa ko kad galbut galetu islipt is ribu del dydzio)
-
+            
 
 
 
@@ -863,8 +863,8 @@ namespace ConvertTagWF
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
-
-
+            
+            
             AutoMapping();
             //SchneiderMemMapper("a");
 
@@ -902,7 +902,7 @@ namespace ConvertTagWF
             Console.WriteLine("5. Delta DOPSoft - Siemens HMI tags (Modbus)");
             Console.WriteLine("6. Delta DOPSoft TextBank - Siemens TextList");
             Console.WriteLine("7. Schneider - Siemens program block");
-            // Console.WriteLine("7. Delta ISPSoft - Siemens PLC DB");
+           // Console.WriteLine("7. Delta ISPSoft - Siemens PLC DB");
             //Console.WriteLine("8. Delta ISPSoft - Siemens program block");
 
             // delta ispsoft - siemens plc tags
