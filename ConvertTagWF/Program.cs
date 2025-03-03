@@ -7,10 +7,13 @@ using System.IO;
 using System.Collections;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.Vml;
+using System.Text.RegularExpressions;
 namespace ConvertTagWF
 {
     internal static class Program
     {
+
+        public static bool[] mem = new bool[10485600];
         public static Dictionary<string, string> types = new Dictionary<string, string>()
         {
             {"T_BIT_X_0","Bool"},
@@ -108,6 +111,13 @@ namespace ConvertTagWF
             {"BOOL", 8 }, {"BYTE", 8}, {"WORD", 16}, {"DWORD", 32}, {"LWORD", 64}, {"SINT", 8}, {"USINT", 8},
             {"INT", 16 }, {"UINT", 16}, {"DINT", 32}, {"UDINT", 32}, {"LINT", 64}, {"ULINT", 64}, {"REAL", 32},
             {"LREAL", 64 }, {"STRING", 64}, {"WSTRING", 256}, {"TIME", 32}
+
+        };
+        public static Dictionary<string, char> SchneiderTypeMemIdentifiers = new Dictionary<string, char>()
+        {
+            {"BOOL", 'X' }, {"BYTE", 'B'}, {"WORD", 'W'}, {"DWORD", 'D'}, {"LWORD", 'L' }, {"SINT", 'B'}, {"USINT", 'B'},
+            {"INT", 'W' }, {"UINT", 'W'}, {"DINT", 'D'}, {"UDINT", 'D'}, {"LINT", 'L'}, {"ULINT", 'L'}, {"REAL", 'D'},
+            {"LREAL", 'L' }, {"STRING", 'B'}, {"WSTRING", 'W'}, {"TIME", 'D'}
 
         };
 
@@ -742,8 +752,59 @@ namespace ConvertTagWF
             }
             AutoMapping();
         }
+        [STAThread]
+        static void SetClipboard(string text)
+        {
+            Clipboard.SetText(text);
+            Console.WriteLine("set text to clip");
+        }
 
 
+        static int CheckAndFillMem(int length)
+        {
+            Console.WriteLine("checking mem for length: " +  length);
+
+            int consecutive = 0, startindex = -1;
+            for (int i = 0; i < mem.Length; i++)
+            {
+                if (!mem[i])
+                {
+                    if (startindex == -1)
+                        startindex = i;
+                    consecutive++;
+                    if (consecutive == length)
+                    {
+                        Console.WriteLine("found " + length + " spaces at " + (i));
+                        for (int j = startindex; j < startindex + consecutive; j++ )
+                        {
+                            Console.WriteLine("Setting true:" + j);
+                            mem[j] = true;
+                        }
+                            
+
+                        return (i+1 - consecutive);
+                    }
+                        
+
+
+
+                }
+                else
+                {
+                    consecutive = 0;
+                    startindex = -1;
+                }
+                
+
+
+            }
+            if (consecutive == 0 ) 
+                {
+                throw new Exception("ner atminties?");
+                }
+            return 0;
+            
+        }
         static void SchneiderMemMapper(string text) // text is clipboard 
         {
             // 1,048,560 bit (65535 word * 16)
@@ -759,16 +820,14 @@ namespace ConvertTagWF
              */
 
             /*
-             * pradet nuo struct/ didziausiu?
              * laisvos vietos radimo ciklas
- 
-             * schneider bool uzima visus 8 bitus(?)
-             * array gali but map'intas tik jei global var, dydis yra tipas * kiekis
-             * array mapint paskutinius kad butu galima rast kintamuosius, jei dydis nurodytas kintamaisiais?
+             * assume kad viskas yra is global vars, netikrint
+             * array negali but mappintas nes schneider neleidzia to, nors codesys leidzia(?)
              * string ir wstring deklaruojami su skliaustais nurodanciais dydi. string 1 char = 1 byte, wstring 1 char = 1 word
+             * string = char array, t.y. string(5) = 5 baitai prasidedantys nuo MBx, wstring(5) = 5 wordai nuo MWx
              */
 
-            bool[] mem = new bool[10485600];
+            
             var lines = text.Split(new[] { '\r', '\n' });
 
             //rast struct, sudet i duomenu tipu sarasa 
@@ -776,41 +835,83 @@ namespace ConvertTagWF
             {
                 if (lines[i].Contains("TYPE") && lines[i].Contains(":"))
                 {
-                    string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", ""); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
+                    string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", "").ToUpper(); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
                     double struct_memlength = 0; // visada bus int bet double reikalingas skaiciavimui veliau
                     while (!lines[i].Contains("END_TYPE"))
                     {
                         if (lines[i].Contains(":") && lines[i].Contains(";"))
                         {
-                          
-                            string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).Replace(" ", "").ToUpper(); // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
-                            struct_memlength += SchneiderDataTypes[type];
+                            // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
+                            string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
+                            if (type.Contains(":="))
+                                type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
+                            if (!type.Contains("ARRAY"))
+                                type = type.Replace(" ", "");
+                            if (type.ToUpper().Contains("WSTRING"))
+                            {
+                                string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                struct_memlength += Convert.ToInt32(string_length) * 8; //1 byte per char
+
+
+                            }
+                            else if (type.ToUpper().Contains("STRING"))
+                            {
+                                string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                struct_memlength += Convert.ToInt32(string_length) * 16; // 1 word per char
+                            }
+                            else
+                            {
+                                if (type.ToUpper().Contains("ARRAY"))
+                                {
+                                    Console.WriteLine(i);
+                                    Regex limitsregex = new Regex(@"\d+"); // Match numbers in the string
+                                    Regex datatyperegex = new Regex(@"OF\s+(\w+)"); // Capture the word after "OF"
+
+                                    Match match = datatyperegex.Match(type);
+
+                                    var datatype = match.Groups[1].Value.ToUpper();
+
+                                    MatchCollection matches = limitsregex.Matches(type);
+
+                                    if (matches.Count >= 2)
+                                    {
+                                        int arr_min = int.Parse(matches[0].Value);
+                                        int arr_max = int.Parse(matches[1].Value);
+                                        struct_memlength += (arr_max - arr_min) * SchneiderDataTypes[datatype];
+                                        i++;
+                                        continue;
+
+                                    }
+                                    else
+                                    { Console.WriteLine("Array su tag'u, ignore"); i++; continue; }
+                                }
+
+                                struct_memlength += SchneiderDataTypes[type];
+                            }
+
                         }
 
                         i++;
                     }
                     //var ab = Math.Ceiling(65.0 / 64.0) * 64;
-                    struct_memlength = Math.Ceiling(struct_memlength/64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
+                    struct_memlength = Math.Ceiling(struct_memlength / 64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
                     SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength));
-                    Console.WriteLine("struct " + struct_name + " length " +  struct_memlength);
+                    SchneiderTypeMemIdentifiers.Add(struct_name, 'L');
+                    Console.WriteLine("struct " + struct_name + " length " + struct_memlength);
                 }
             }
 
-
-            // rast zodi TYPE, is tos eilutes isfiltruot TYPE, :, tarpus kad gaut pavadinima
-            // eit toliau iki END_TYPE, kintamuosius atpazint pagal : ir ; kad gaut pavadinima substring tarp tu dvieju simboliu ir isfiltruot tarpus
-            // tikrinant SchneiderDataTypes, jei randa tinkama zodi tai prie atminties total pridet tipo dydi
-            
 
 
 
 
             // rast jau sumapintus kintamuosius
-            foreach (string line in lines) 
+            foreach (string line in lines)
             {
                 if (line.Contains("%M"))
                 {
                     char identifier = line[line.IndexOf('%') + 2]; // rast kokia raide eina po %M
+                    string type = (line.Substring(line.IndexOf(':') + 1, line.IndexOf(";") - (line.IndexOf(':') + 1))).Replace(" ", "").ToUpper();
                     int mem_dydis;
                     switch (identifier)
                     {
@@ -827,34 +928,144 @@ namespace ConvertTagWF
                             mem_dydis = 32;
                             break;
                         case 'L':
-                            string type = (line.Substring(line.IndexOf(':') + 1, line.IndexOf(";") - (line.IndexOf(':') + 1))).Replace(" ", "");
                             mem_dydis = SchneiderDataTypes[type];
                             break;
                         default: throw new Exception("bruh");
-                            
+
                     }
 
+                    //tikrint string/wstring
+                    if (type.Contains("WSTRING"))
+                    {
+                        string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                        mem_dydis = Convert.ToInt32(string_length) * 8; //1 byte per char
+
+
+                    }
+                    else if (type.Contains("STRING"))
+                    {
+                        string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                        mem_dydis = Convert.ToInt32(string_length) * 16; // 1 word per char
+                    }
+
+
+
+
+
                     // %MX100.0 = rast %, eit 3 i prieki (skaiciaus pradzia), eiti iki : zenklo  kad gaut skaiciu
-                    string s = line.Substring(line.IndexOf('%') + 3, line.IndexOf(':') - (line.IndexOf('%') + 3)); 
+                    string s = line.Substring(line.IndexOf('%') + 3, line.IndexOf(':') - (line.IndexOf('%') + 3));
                     // gautas rezultatas gali but 101.0 tai pirma convert i double ir tik tada i int kad isvengt klaidos
                     int mem_addr = Convert.ToInt32(Convert.ToDouble(s));
                     int temp = mem_addr * mem_dydis;
                     Console.WriteLine("mem:" + temp + " to " + (temp + mem_dydis));
                     for (int i = temp; i < (temp + mem_dydis); i++)
+                    {
                         mem[i] = true;
+                    }
+
                     //
-                    
+
 
 
                 }
             }
-            // sumappint likusius, pradedant nuo struct, baigiant string (del visa ko kad galbut galetu islipt is ribu del dydzio)
+
+            // sumappint likusius, pradedant nuo struct(?)
+            // ieskot raktiniu zodziu kad nepradet mappint kintamuju vidury struct
+            string new_lines = "";
+            bool galima_mappint = true;
             
+            foreach (string line in lines)
+            {
+                string newline = line;
+                if (line.Contains("TYPE") && line.Contains(":"))
+                {
+                    galima_mappint = false;
+                }
+                else if (line.Contains("VAR_GLOBAL"))
+                {
+                    galima_mappint = true;
+                }
+
+                if (galima_mappint)
+                {
+                    
+                    if (line.ToUpper().Contains(":") && line.ToUpper().Contains(";") && !line.ToUpper().Contains("ARRAY") && !line.ToUpper().Contains("AT"))
+                    {
+                        // kintamojo pav, tipo, atminties uzemimo gavimas
+                        string var_name, var_type;
+                        int var_mem_length = 0;
+                        var_name = line.Substring(0, line.IndexOf(':'));
+                        var_type = (line.Substring(line.IndexOf(':') + 1, line.IndexOf(";") - (line.IndexOf(':') + 1))).Replace(" ", "").ToUpper();
+                        if (var_type.ToUpper().Contains("WSTRING"))
+                        {
+
+                            string string_length = var_type.Substring(var_type.IndexOf('(') + 1, var_type.IndexOf(')') - var_type.IndexOf('(') - 1);
+                            var_type = "WSTRING";
+                            var_mem_length = Convert.ToInt32(string_length) * 16;
+
+                        }
+                        else if (var_type.ToUpper().Contains("STRING"))
+                        {
+                            string string_length = var_type.Substring(var_type.IndexOf('(') + 1, var_type.IndexOf(')') - var_type.IndexOf('(') - 1);
+                            var_type = "STRING";
+                            var_mem_length = Convert.ToInt32(string_length) * 8;
+                        
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var_mem_length = SchneiderDataTypes[var_type];
+                            }
+                            catch
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Tipas " + var_type + " nerastas!!");
+                                Console.ForegroundColor = ConsoleColor.White;
+                                Console.Write(var_type + " uzimamos atminties dydis:");
+                                var_mem_length = Convert.ToInt32(Console.ReadLine());
+                                SchneiderDataTypes.Add(var_type, var_mem_length);
+                                SchneiderTypeMemIdentifiers.Add(var_type, 'L');
+                            }
+                            
+                        }
+
+                        //laisvos atminties vietos radimas
+                        double uzimtibitai = 0;
+                        while (true)
+                        {
+                            double free_mem_index = CheckAndFillMem(var_mem_length);
+                            
+                            // gautas bitas / var mem ilgio rounded up 
+                            int l = Convert.ToInt32(Math.Ceiling(free_mem_index + uzimtibitai / var_mem_length));
+                            uzimtibitai += l;
+                            Console.Write("");
+
+                                if (var_type == "BOOL")
+                                {
+                                    newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ".0" + " : " + var_type + ";";
+                                    
+                                }
+                                else
+                                    newline = var_name + " AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + " : " + var_type + ";";
+                                Console.WriteLine(var_name + " : " + var_type + " : " + SchneiderTypeMemIdentifiers[var_type] + " : L=" + l + "   memlength=" + var_mem_length);
+                                break;
+                            
+
+                        }
+                    }
+                }
+                new_lines += newline + "\n";
+            }
 
 
 
 
 
+
+            SetClipboard(new_lines);
+           
 
 
         }
@@ -864,7 +1075,10 @@ namespace ConvertTagWF
         {
             ApplicationConfiguration.Initialize();
             
-            
+
+
+
+
             AutoMapping();
             //SchneiderMemMapper("a");
 
