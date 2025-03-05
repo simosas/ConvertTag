@@ -764,26 +764,28 @@ namespace ConvertTagWF
         {
             Console.WriteLine("checking mem for length: " +  length);
 
-            int consecutive = 0, startindex = -1;
+            //int consecutive = 0, startindex = -1;
             for (int i = 0; i < mem.Length; i++)
             {
-                if (!mem[i])
+                if (!mem[i] && i % length == 0)
                 {
-                    if (startindex == -1)
+                    for (int j = i; j < length+i; j++)
+                    {
+                        Console.WriteLine("Setting true:" + j);
+                        mem[j] = true;
+                    }
+                    return i;
+                   /* if (startindex == -1)
                         startindex = i;
                     consecutive++;
                     if (consecutive == length)
                     {
                         Console.WriteLine("found " + length + " spaces at " + (i));
-                        for (int j = startindex; j < startindex + consecutive; j++ )
-                        {
-                            Console.WriteLine("Setting true:" + j);
-                            mem[j] = true;
-                        }
+
                             
 
                         return (i+1 - consecutive);
-                    }
+                    }*/
                         
 
 
@@ -791,17 +793,13 @@ namespace ConvertTagWF
                 }
                 else
                 {
-                    consecutive = 0;
-                    startindex = -1;
+                    //consecutive = 0;
+                   // startindex = -1;
                 }
                 
 
 
             }
-            if (consecutive == 0 ) 
-                {
-                throw new Exception("ner atminties?");
-                }
             return 0;
             
         }
