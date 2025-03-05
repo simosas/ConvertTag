@@ -767,8 +767,16 @@ namespace ConvertTagWF
             int consecutive = 0, startindex = -1;
             for (int i = 0; i < mem.Length; i++)
             {
-                if (!mem[i])
+                if (!mem[i] && i % length == 0)
                 {
+                    Console.WriteLine("free mem " + " pildo nuo " + i + " iki " + (i + length));
+                    for (int j = i; j < i + length; j++)
+                    {
+                        //Console.WriteLine("Setting true:" + j);
+                        mem[j] = true;
+                    }
+                    return i;
+                    /*
                     if (startindex == -1)
                         startindex = i;
                     consecutive++;
@@ -783,7 +791,7 @@ namespace ConvertTagWF
 
 
                         return (i + 1 - consecutive);
-                    }
+                    }*/
 
 
 
