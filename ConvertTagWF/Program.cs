@@ -282,7 +282,7 @@ namespace ConvertTagWF
         }
 
 
-        static void SchneiderSiemensHmi(string file)
+        static void SchneiderSiemensHmiOPC(string file)
         {
             Console.Write("connection:");
             string connection = Console.ReadLine();
@@ -764,12 +764,11 @@ namespace ConvertTagWF
         {
             //Console.WriteLine("checking mem for length: " + length);
 
-            int consecutive = 0, startindex = -1;
             for (int i = 0; i < mem.Length; i++)
             {
                 if (!mem[i] && i % length == 0)
                 {
-                    Console.WriteLine("free mem " + " pildo nuo " + i + " iki " + (i + length));
+                    //Console.WriteLine("free mem " + " pildo nuo " + i + " iki " + (i + length));
                     for (int j = i; j < i + length; j++)
                     {
                         //Console.WriteLine("Setting true:" + j);
@@ -797,24 +796,29 @@ namespace ConvertTagWF
 
 
                 }
-                else
-                {
-                    consecutive = 0;
-                    startindex = -1;
-                }
+                
 
 
 
             }
-            if (consecutive == 0)
-            {
-                throw new Exception("ner atminties?");
-            }
-            return 0;
+            
+            throw new Exception("ner atminties?");
+            
+
 
         }
         static void SchneiderMemMapper(string text) // text is clipboard 
         {
+
+            // string/wstring default 80, arba nurodytas dydis skliaustuose +
+            // pasirinkt ar is naujo
+            // sukurt ui 
+            // array of bool neveikia, isskyrus struct'uose esantys, BET paprasti array veikia ir turetu but mappinami 
+            // priskirt array prie alarm arba ignore
+            // array paimt tik pirma kint bet deklaruot atminti kaip viso array (modbus leidzia max array dydi 100)
+            // 
+            // 
+
             // 1,048,560 bit (65535 word * 16)
             /* schneider atmintis skirstoma i M+ 
              * X - bit (1) (is tikruju 8 nes schneider dalykai)
@@ -830,7 +834,6 @@ namespace ConvertTagWF
             /*
              * laisvos vietos radimo ciklas
              * assume kad viskas yra is global vars, netikrint
-             * array negali but mappintas nes schneider neleidzia to, nors codesys leidzia(?)
              * string ir wstring deklaruojami su skliaustais nurodanciais dydi. string 1 char = 1 byte, wstring 1 char = 1 word
              * string = char array, t.y. string(5) = 5 baitai prasidedantys nuo MBx, wstring(5) = 5 wordai nuo MWx
              */
@@ -847,7 +850,7 @@ namespace ConvertTagWF
                     double struct_memlength = 0; // visada bus int bet double reikalingas skaiciavimui veliau
                     while (!lines[i].Contains("END_TYPE"))
                     {
-                        if (lines[i].Contains(":") && lines[i].Contains(";"))
+                        if (lines[i].Contains(":") && lines[i].Contains(";") && !lines[i].Contains("//"))
                         {
                             // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
                             string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
@@ -857,23 +860,43 @@ namespace ConvertTagWF
                                 type = type.Replace(" ", "");
                             if (type.ToUpper().Contains("WSTRING"))
                             {
-                                string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
-                                struct_memlength += Convert.ToInt32(string_length) * 8; //1 byte per char
+                                if (type.Contains("(") && type.Contains(")"))
+                                {
+                                    // jei wstring dydis deklaruotas skliaustuose:
+                                    string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                    struct_memlength += Convert.ToInt32(string_length) * 16; //1 word per char
+                                }
+                                else
+                                {
+                                    // default wstring dydis (80 simboliu po 1 word)
+                                    struct_memlength += 80 * 16;
+                                }
+
 
 
                             }
                             else if (type.ToUpper().Contains("STRING"))
                             {
-                                string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
-                                struct_memlength += Convert.ToInt32(string_length) * 16; // 1 word per char
+                                if (type.Contains("(") && type.Contains(")"))
+                                {
+                                    // jei string dydis deklaruotas skliaustuose:
+                                    string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                    struct_memlength += Convert.ToInt32(string_length) * 8; // 1 byte per char
+                                }
+                                else
+                                {
+                                    // default string dydis (80 simboliu po 1 byte)
+                                    struct_memlength += 80 * 8;
+                                }
+
                             }
                             else
                             {
                                 if (type.ToUpper().Contains("["))
                                 {
                                     //Console.WriteLine(i);
-                                    Regex limitsregex = new Regex(@"\d+"); // Match numbers in the string
-                                    Regex datatyperegex = new Regex(@"OF\s+(\w+)"); // Capture the word after "OF"
+                                    Regex limitsregex = new Regex(@"\d+"); // skaiciu tikrinimo regex
+                                    Regex datatyperegex = new Regex(@"OF\s+(\w+)"); // rast duomeni tipa po teksto "OF"
 
                                     Match match = datatyperegex.Match(type);
 
@@ -881,7 +904,7 @@ namespace ConvertTagWF
 
                                     MatchCollection matches = limitsregex.Matches(type);
 
-                                    if (matches.Count >= 2)
+                                    if (matches.Count >= 2) // jei yra 2 matches tai reiskias array dydis deklaruotas skaiciais, jei nera 2 tada ignore
                                     {
                                         int arr_min = int.Parse(matches[0].Value);
                                         int arr_max = int.Parse(matches[1].Value);
@@ -912,7 +935,7 @@ namespace ConvertTagWF
 
 
 
-
+            bool remap_is_naujo = false;
 
             // rast jau sumapintus kintamuosius
             foreach (string line in lines)
@@ -937,7 +960,20 @@ namespace ConvertTagWF
                             mem_dydis = 32;
                             break;
                         case 'L':
-                            mem_dydis = SchneiderDataTypes[type];
+                            try
+                            {
+                                mem_dydis = SchneiderDataTypes[type];
+                            }
+                            catch
+                            {
+                                mem_dydis = 0;
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Tipas " + type + " skippinamas");
+                                Console.ForegroundColor = ConsoleColor.White;
+                                continue;
+
+
+                            }
                             break;
                         default: throw new Exception("bruh");
 
@@ -1032,12 +1068,10 @@ namespace ConvertTagWF
                             catch
                             {
                                 Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine("Tipas " + var_type + " nerastas!!");
+                                Console.WriteLine("Tipas " + var_type + " skippinamas");
                                 Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write(var_type + " uzimamos atminties dydis:");
-                                var_mem_length = Convert.ToInt32(Console.ReadLine());
-                                SchneiderDataTypes.Add(var_type, var_mem_length);
-                                SchneiderTypeMemIdentifiers.Add(var_type, 'L');
+                                continue;
+
                             }
 
                         }
@@ -1051,9 +1085,9 @@ namespace ConvertTagWF
                             // gautas bitas / var mem ilgio rounded up 
                             //int l = Convert.ToInt32(Math.Ceiling((free_mem_index + uzimtibitai) / var_mem_length));
                             int l = Convert.ToInt32(Math.Ceiling((free_mem_index) / var_mem_length));
-                            Console.WriteLine("Free index: " + free_mem_index + "  uzimami bitai:" + var_mem_length + "  atminties vieta  %M" + SchneiderTypeMemIdentifiers[var_type] + l);
+                            //Console.WriteLine("Free index: " + free_mem_index + "  uzimami bitai:" + var_mem_length + "  atminties vieta  %M" + SchneiderTypeMemIdentifiers[var_type] + l);
                             uzimtibitai += l;
-                            Console.WriteLine("Uzimti bitai: " +  uzimtibitai);
+                            //Console.WriteLine("Uzimti bitai: " +  uzimtibitai);
                             Console.Write("");
 
                             if (var_type == "BOOL")
@@ -1088,9 +1122,7 @@ namespace ConvertTagWF
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
-
-
-
+            
 
 
                 AutoMapping();
@@ -1098,6 +1130,16 @@ namespace ConvertTagWF
 
 
             /*
+             * 
+             * universal vars + universal arrays + universal structs kad butu galima konvertuot is bet ko i bet ka?
+             * tada butu lengviau useriui konvertuot i bet koki tipa nes tikriausiai niekas nenaudos failo exportu, bet juos vistiek reiktu supportint
+             * universal vars turetu turet pakankamai info kad butu galima konvertuot i bet koki standarta
+             * name - type - isArray(?) - array min - array max - kintamuju sarasas - atminties uzemimas (bit)
+             * isArray galbut galima nedet, tiesiog tikrint ar array max yra 0 ?
+             * kintamuju sarasas tuscias jei ne struct
+             * atminties uzemima struct skaiciuot sudejus visus bendrai
+             * skaitant schneider iskart pagriebt visus structus ir paskirt jiems atminties dydzius kad butu galima struct viduj struct apskaiciuot?
+             * 
 
              * atkartot memory mapper: paimt nukopijuota schneider var sarasa, pridet AT atmintis kur truksta, esancias AT atmintis palikt vietoj (padaryt pasirinkima?)
              * atkartot eksporta i delta, kazkaip nustatyt koks etherlink prefixas
@@ -1107,6 +1149,7 @@ namespace ConvertTagWF
              * prie program blocku konvertavimu tag'u pridet DB pavadinima?
              * delta isp siemens db funkcija (nebutina)
              * delta isp siemens programa (nebutina)
+             * schneider - siemens modbus (realiai paimt i delta - siemens), kazkaip sukapot structus
              
              */
 
@@ -1153,7 +1196,7 @@ namespace ConvertTagWF
                     break;
 
                 case '3':
-                    SchneiderSiemensHmi(file);
+                    SchneiderSiemensHmiOPC(file);
                     break;
 
                 case '4':
