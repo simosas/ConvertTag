@@ -53,7 +53,7 @@
             InputTextBox.Location = new Point(12, 55);
             InputTextBox.Name = "InputTextBox";
             InputTextBox.ScrollBars = RichTextBoxScrollBars.ForcedBoth;
-            InputTextBox.Size = new Size(380, 559);
+            InputTextBox.Size = new Size(452, 559);
             InputTextBox.TabIndex = 0;
             InputTextBox.Text = "";
             InputTextBox.WordWrap = false;
@@ -61,10 +61,10 @@
             // OutputTextBox
             // 
             OutputTextBox.Font = new Font("Courier New", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            OutputTextBox.Location = new Point(398, 55);
+            OutputTextBox.Location = new Point(470, 55);
             OutputTextBox.Name = "OutputTextBox";
             OutputTextBox.ScrollBars = RichTextBoxScrollBars.ForcedBoth;
-            OutputTextBox.Size = new Size(380, 559);
+            OutputTextBox.Size = new Size(476, 559);
             OutputTextBox.TabIndex = 1;
             OutputTextBox.Text = "";
             OutputTextBox.WordWrap = false;
@@ -83,7 +83,7 @@
             // RemapCheckBox
             // 
             RemapCheckBox.AutoSize = true;
-            RemapCheckBox.Location = new Point(1037, 528);
+            RemapCheckBox.Location = new Point(188, 22);
             RemapCheckBox.Name = "RemapCheckBox";
             RemapCheckBox.Size = new Size(122, 19);
             RemapCheckBox.TabIndex = 3;
@@ -93,7 +93,7 @@
             // SendToClipCheckbox
             // 
             SendToClipCheckbox.AutoSize = true;
-            SendToClipCheckbox.Location = new Point(1036, 562);
+            SendToClipCheckbox.Location = new Point(316, 22);
             SendToClipCheckbox.Name = "SendToClipCheckbox";
             SendToClipCheckbox.Size = new Size(158, 19);
             SendToClipCheckbox.TabIndex = 4;
@@ -102,7 +102,7 @@
             // 
             // OutToDeltaHmi
             // 
-            OutToDeltaHmi.Location = new Point(1037, 55);
+            OutToDeltaHmi.Location = new Point(1266, 53);
             OutToDeltaHmi.Name = "OutToDeltaHmi";
             OutToDeltaHmi.Size = new Size(142, 36);
             OutToDeltaHmi.TabIndex = 5;
@@ -111,7 +111,7 @@
             // 
             // DeltaEtherlinkTextBox
             // 
-            DeltaEtherlinkTextBox.Location = new Point(1037, 24);
+            DeltaEtherlinkTextBox.Location = new Point(1266, 22);
             DeltaEtherlinkTextBox.Name = "DeltaEtherlinkTextBox";
             DeltaEtherlinkTextBox.Size = new Size(142, 23);
             DeltaEtherlinkTextBox.TabIndex = 6;
@@ -119,7 +119,7 @@
             // 
             // OutToSiemensModbus
             // 
-            OutToSiemensModbus.Location = new Point(952, 97);
+            OutToSiemensModbus.Location = new Point(1181, 95);
             OutToSiemensModbus.Name = "OutToSiemensModbus";
             OutToSiemensModbus.Size = new Size(227, 36);
             OutToSiemensModbus.TabIndex = 7;
@@ -132,7 +132,7 @@
             OutToSiemensOpc.BackColor = SystemColors.ControlLightLight;
             OutToSiemensOpc.FlatAppearance.BorderColor = Color.Black;
             OutToSiemensOpc.FlatAppearance.BorderSize = 2;
-            OutToSiemensOpc.Location = new Point(952, 266);
+            OutToSiemensOpc.Location = new Point(1182, 261);
             OutToSiemensOpc.Name = "OutToSiemensOpc";
             OutToSiemensOpc.Size = new Size(227, 36);
             OutToSiemensOpc.TabIndex = 8;
@@ -142,7 +142,7 @@
             // 
             // OutToSiemensDB
             // 
-            OutToSiemensDB.Location = new Point(952, 308);
+            OutToSiemensDB.Location = new Point(1182, 303);
             OutToSiemensDB.Name = "OutToSiemensDB";
             OutToSiemensDB.Size = new Size(227, 36);
             OutToSiemensDB.TabIndex = 9;
@@ -152,7 +152,7 @@
             // 
             // SiemensOpcPrefixTextBox
             // 
-            SiemensOpcPrefixTextBox.Location = new Point(851, 237);
+            SiemensOpcPrefixTextBox.Location = new Point(1081, 232);
             SiemensOpcPrefixTextBox.Name = "SiemensOpcPrefixTextBox";
             SiemensOpcPrefixTextBox.Size = new Size(328, 23);
             SiemensOpcPrefixTextBox.TabIndex = 10;
@@ -161,7 +161,7 @@
             // 
             // OutToSiemensPLC
             // 
-            OutToSiemensPLC.Location = new Point(952, 350);
+            OutToSiemensPLC.Location = new Point(1182, 345);
             OutToSiemensPLC.Name = "OutToSiemensPLC";
             OutToSiemensPLC.Size = new Size(227, 36);
             OutToSiemensPLC.TabIndex = 11;
@@ -171,7 +171,7 @@
             // 
             // OutToSiemensHmi
             // 
-            OutToSiemensHmi.Location = new Point(952, 392);
+            OutToSiemensHmi.Location = new Point(1182, 387);
             OutToSiemensHmi.Name = "OutToSiemensHmi";
             OutToSiemensHmi.Size = new Size(227, 36);
             OutToSiemensHmi.TabIndex = 12;
@@ -181,7 +181,7 @@
             // 
             // SchneiderStlToScl
             // 
-            SchneiderStlToScl.Location = new Point(952, 450);
+            SchneiderStlToScl.Location = new Point(1182, 445);
             SchneiderStlToScl.Name = "SchneiderStlToScl";
             SchneiderStlToScl.Size = new Size(227, 36);
             SchneiderStlToScl.TabIndex = 13;
@@ -193,7 +193,7 @@
             // 
             ResultsTextBox.Location = new Point(12, 620);
             ResultsTextBox.Name = "ResultsTextBox";
-            ResultsTextBox.Size = new Size(766, 81);
+            ResultsTextBox.Size = new Size(934, 81);
             ResultsTextBox.TabIndex = 16;
             ResultsTextBox.Text = "";
             // 
@@ -202,7 +202,7 @@
             ShowResultsCheckbox.AutoSize = true;
             ShowResultsCheckbox.Checked = true;
             ShowResultsCheckbox.CheckState = CheckState.Checked;
-            ShowResultsCheckbox.Location = new Point(1036, 595);
+            ShowResultsCheckbox.Location = new Point(1272, 595);
             ShowResultsCheckbox.Name = "ShowResultsCheckbox";
             ShowResultsCheckbox.Size = new Size(137, 19);
             ShowResultsCheckbox.TabIndex = 17;
@@ -212,7 +212,7 @@
             // 
             // button10
             // 
-            button10.Location = new Point(1037, 630);
+            button10.Location = new Point(1272, 620);
             button10.Name = "button10";
             button10.Size = new Size(136, 32);
             button10.TabIndex = 18;
@@ -224,7 +224,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1206, 713);
+            ClientSize = new Size(1421, 713);
             Controls.Add(button10);
             Controls.Add(ShowResultsCheckbox);
             Controls.Add(ResultsTextBox);

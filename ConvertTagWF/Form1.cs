@@ -332,7 +332,7 @@ namespace ConvertTagWF
                         string[] tts = tt.Split(',');
                         //2,3 - range, 5 - type
                         type = "Array [" + tts[2] + ".." + tts[3] + "] of " + typesHMI["T_" + tts[5]];
-                        //sw.WriteLine("      " + name + " : " + "Array[" + tts[2] + ".." + tts[3] + "] of " + tts[5] + ";");
+                        //sw.WriteLine("      " + name + ":  " + "Array[" + tts[2] + ".." + tts[3] + "] of " + tts[5] + ";");
                     }
                     string coding = "Binary";
                     if (type == "Real" || type == "LReal")
@@ -890,6 +890,8 @@ namespace ConvertTagWF
                 {
                     string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", "").ToUpper(); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
                     double struct_memlength = 0; // visada bus int bet double reikalingas skaiciavimui veliau
+                    if (struct_name == "STRUC_SYSTEM")
+                        Console.Write("");
                     int last_tag_size = 0;
                     while (!lines[i].Contains("END_TYPE"))
                     {
@@ -963,7 +965,7 @@ namespace ConvertTagWF
                                         int arr_max = int.Parse(matches[1].Value);
                                         array_mem_usage = (arr_max + 1 - arr_min) * SchneiderDataTypes[datatype];
                                         struct_memlength += array_mem_usage;
-                                        struct_memlength += (struct_memlength % SchneiderDataTypes[datatype]);
+                                        last_tag_size = SchneiderDataTypes[datatype];
                                         i++;
 
                                         
@@ -986,14 +988,14 @@ namespace ConvertTagWF
                             if (last_tag_size == 0)
                                 last_tag_size = SchneiderDataTypes[type];
                             
-                            if (last_tag_size < SchneiderDataTypes[type])
+                            if (last_tag_size < SchneiderDataTypes[type] && struct_memlength % SchneiderDataTypes[type] != 0)
                             {
                                 Console.WriteLine(last_tag_size + " yra mazesnis uz " + SchneiderDataTypes[type]);
                                 struct_memlength += (SchneiderDataTypes[type] - last_tag_size);
                             }
 
                             last_tag_size = SchneiderDataTypes[type];
-                                    
+                            Console.WriteLine(struct_memlength);
                             
 
                         }
@@ -1005,7 +1007,7 @@ namespace ConvertTagWF
                     struct_memlength = Math.Ceiling(struct_memlength / 64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
                     try
                     {
-                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength));
+                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength - 7)); // nezinau kodel -7 bet kazkur prisideda tiek per daug ir atimant susitaiso
                         SchneiderTypeMemIdentifiers.Add(struct_name, 'L');
                     }
                     catch
@@ -1278,7 +1280,7 @@ namespace ConvertTagWF
                             if (var_type == "BOOL")
                             {
 
-                                newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ".0" + " : " + var_type + ";";
+                                newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ".0" + ":  " + var_type + ";";
                                 
 
 
@@ -1287,19 +1289,19 @@ namespace ConvertTagWF
                             {
                                 if (array_tipas != string.Empty)
                                 {
-                                    newline = var_name + " AT %M" + SchneiderTypeMemIdentifiers[array_tipas] + l + " : " + "ARRAY[" + arr_min + ".." + arr_max + "] OF " + array_tipas + ";";
+                                    newline = var_name + " AT %M" + SchneiderTypeMemIdentifiers[array_tipas] + l + ":  " + "ARRAY[" + arr_min + ".." + arr_max + "] OF " + array_tipas + ";";
                                     
                                 }
                                 else
                                 {
-                                    newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + " : " + var_type + ";";
+                                    newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ":  " + var_type + ";";
                                     
                                 }
                                     
 
                             }
 
-                            //Console.WriteLine(var_name + " : " + var_type + " : " + SchneiderTypeMemIdentifiers[var_type] + " : L=" + l + "   memlength=" + var_mem_length);
+                            //Console.WriteLine(var_name + ":  " + var_type + ":  " + SchneiderTypeMemIdentifiers[var_type] + ":  L=" + l + "   memlength=" + var_mem_length);
                             break;
 
 
@@ -1328,7 +1330,7 @@ namespace ConvertTagWF
                 int startind = 0;
                 for (int i = endind; i > 0; i--)
                 {
-                    if (newline[i] == 'A')
+                    if (newline[i] == 'A' && newline[i+1] == 'T' && newline[i-1] == ' ') // negrazus sprendimas bet turetu veikt
                         startind = i;
                 }
                 newline = newline.Remove(startind, endind - startind);
@@ -1396,7 +1398,7 @@ namespace ConvertTagWF
             }
             catch (Exception ex)
             {
-                ResultsTextBox.Text += DateTime.Now + " : " + ex.Message + "\n";
+                ResultsTextBox.Text += DateTime.Now + ":  " + ex.Message + "\n";
             }
 
 
