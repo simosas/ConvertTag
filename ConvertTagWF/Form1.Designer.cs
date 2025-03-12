@@ -28,185 +28,187 @@
         /// </summary>
         private void InitializeComponent()
         {
-            richTextBox1 = new RichTextBox();
-            richTextBox2 = new RichTextBox();
-            button1 = new Button();
-            checkBox1 = new CheckBox();
-            checkBox2 = new CheckBox();
-            button2 = new Button();
-            textBox1 = new TextBox();
-            button3 = new Button();
-            button4 = new Button();
-            button5 = new Button();
-            textBox2 = new TextBox();
-            button6 = new Button();
-            button7 = new Button();
-            button8 = new Button();
-            button9 = new Button();
-            richTextBox3 = new RichTextBox();
-            checkBox4 = new CheckBox();
+            InputTextBox = new RichTextBox();
+            OutputTextBox = new RichTextBox();
+            InputToOutputButton = new Button();
+            RemapCheckBox = new CheckBox();
+            SendToClipCheckbox = new CheckBox();
+            OutToDeltaHmi = new Button();
+            DeltaEtherlinkTextBox = new TextBox();
+            OutToSiemensModbus = new Button();
+            OutToSiemensOpc = new Button();
+            OutToSiemensDB = new Button();
+            SiemensOpcPrefixTextBox = new TextBox();
+            OutToSiemensPLC = new Button();
+            OutToSiemensHmi = new Button();
+            SchneiderStlToScl = new Button();
+            ResultsTextBox = new RichTextBox();
+            ShowResultsCheckbox = new CheckBox();
             button10 = new Button();
             SuspendLayout();
             // 
-            // richTextBox1
+            // InputTextBox
             // 
-            richTextBox1.Location = new Point(12, 55);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(380, 559);
-            richTextBox1.TabIndex = 0;
-            richTextBox1.Text = "";
+            InputTextBox.Font = new Font("Courier New", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            InputTextBox.Location = new Point(12, 55);
+            InputTextBox.Name = "InputTextBox";
+            InputTextBox.ScrollBars = RichTextBoxScrollBars.ForcedBoth;
+            InputTextBox.Size = new Size(380, 559);
+            InputTextBox.TabIndex = 0;
+            InputTextBox.Text = "";
+            InputTextBox.WordWrap = false;
             // 
-            // richTextBox2
+            // OutputTextBox
             // 
-            richTextBox2.Location = new Point(398, 55);
-            richTextBox2.Name = "richTextBox2";
-            richTextBox2.Size = new Size(380, 559);
-            richTextBox2.TabIndex = 1;
-            richTextBox2.Text = "";
+            OutputTextBox.Font = new Font("Courier New", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            OutputTextBox.Location = new Point(398, 55);
+            OutputTextBox.Name = "OutputTextBox";
+            OutputTextBox.ScrollBars = RichTextBoxScrollBars.ForcedBoth;
+            OutputTextBox.Size = new Size(380, 559);
+            OutputTextBox.TabIndex = 1;
+            OutputTextBox.Text = "";
+            OutputTextBox.WordWrap = false;
             // 
-            // button1
+            // InputToOutputButton
             // 
-            button1.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            button1.Location = new Point(12, 12);
-            button1.Name = "button1";
-            button1.Size = new Size(170, 37);
-            button1.TabIndex = 2;
-            button1.Text = " >>>";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            InputToOutputButton.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            InputToOutputButton.Location = new Point(12, 12);
+            InputToOutputButton.Name = "InputToOutputButton";
+            InputToOutputButton.Size = new Size(170, 37);
+            InputToOutputButton.TabIndex = 2;
+            InputToOutputButton.Text = " >>>";
+            InputToOutputButton.UseVisualStyleBackColor = true;
+            InputToOutputButton.Click += InputToOutputButton_Click;
             // 
-            // checkBox1
+            // RemapCheckBox
             // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(1037, 528);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(122, 19);
-            checkBox1.TabIndex = 3;
-            checkBox1.Text = "Re-map addresses";
-            checkBox1.UseVisualStyleBackColor = true;
+            RemapCheckBox.AutoSize = true;
+            RemapCheckBox.Location = new Point(1037, 528);
+            RemapCheckBox.Name = "RemapCheckBox";
+            RemapCheckBox.Size = new Size(122, 19);
+            RemapCheckBox.TabIndex = 3;
+            RemapCheckBox.Text = "Re-map addresses";
+            RemapCheckBox.UseVisualStyleBackColor = true;
             // 
-            // checkBox2
+            // SendToClipCheckbox
             // 
-            checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(1036, 562);
-            checkBox2.Name = "checkBox2";
-            checkBox2.Size = new Size(158, 19);
-            checkBox2.TabIndex = 4;
-            checkBox2.Text = "Send output to clipboard";
-            checkBox2.UseVisualStyleBackColor = true;
+            SendToClipCheckbox.AutoSize = true;
+            SendToClipCheckbox.Location = new Point(1036, 562);
+            SendToClipCheckbox.Name = "SendToClipCheckbox";
+            SendToClipCheckbox.Size = new Size(158, 19);
+            SendToClipCheckbox.TabIndex = 4;
+            SendToClipCheckbox.Text = "Send output to clipboard";
+            SendToClipCheckbox.UseVisualStyleBackColor = true;
             // 
-            // button2
+            // OutToDeltaHmi
             // 
-            button2.Location = new Point(1037, 55);
-            button2.Name = "button2";
-            button2.Size = new Size(142, 36);
-            button2.TabIndex = 5;
-            button2.Text = "Output -> Delta HMI";
-            button2.UseVisualStyleBackColor = true;
+            OutToDeltaHmi.Location = new Point(1037, 55);
+            OutToDeltaHmi.Name = "OutToDeltaHmi";
+            OutToDeltaHmi.Size = new Size(142, 36);
+            OutToDeltaHmi.TabIndex = 5;
+            OutToDeltaHmi.Text = "Output -> Delta HMI";
+            OutToDeltaHmi.UseVisualStyleBackColor = true;
             // 
-            // textBox1
+            // DeltaEtherlinkTextBox
             // 
-            textBox1.Location = new Point(1037, 24);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(142, 23);
-            textBox1.TabIndex = 6;
-            textBox1.Text = "{EtherLink1}1@W4-";
+            DeltaEtherlinkTextBox.Location = new Point(1037, 24);
+            DeltaEtherlinkTextBox.Name = "DeltaEtherlinkTextBox";
+            DeltaEtherlinkTextBox.Size = new Size(142, 23);
+            DeltaEtherlinkTextBox.TabIndex = 6;
+            DeltaEtherlinkTextBox.Text = "{EtherLink1}1@W4-";
             // 
-            // button3
+            // OutToSiemensModbus
             // 
-            button3.Location = new Point(952, 122);
-            button3.Name = "button3";
-            button3.Size = new Size(227, 36);
-            button3.TabIndex = 7;
-            button3.Text = "Convert -> Siemens HMI (Modbus)";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
+            OutToSiemensModbus.Location = new Point(952, 97);
+            OutToSiemensModbus.Name = "OutToSiemensModbus";
+            OutToSiemensModbus.Size = new Size(227, 36);
+            OutToSiemensModbus.TabIndex = 7;
+            OutToSiemensModbus.Text = "Output -> Siemens HMI (Modbus)";
+            OutToSiemensModbus.UseVisualStyleBackColor = true;
+            OutToSiemensModbus.Click += OutToSiemensModbus_Click;
             // 
-            // button4
+            // OutToSiemensOpc
             // 
-            button4.BackColor = SystemColors.ControlLightLight;
-            button4.FlatAppearance.BorderColor = Color.Black;
-            button4.FlatAppearance.BorderSize = 2;
-            button4.Location = new Point(952, 266);
-            button4.Name = "button4";
-            button4.Size = new Size(227, 36);
-            button4.TabIndex = 8;
-            button4.Text = "Convert -> Siemens HMI (OPC UA)";
-            button4.UseVisualStyleBackColor = false;
+            OutToSiemensOpc.BackColor = SystemColors.ControlLightLight;
+            OutToSiemensOpc.FlatAppearance.BorderColor = Color.Black;
+            OutToSiemensOpc.FlatAppearance.BorderSize = 2;
+            OutToSiemensOpc.Location = new Point(952, 266);
+            OutToSiemensOpc.Name = "OutToSiemensOpc";
+            OutToSiemensOpc.Size = new Size(227, 36);
+            OutToSiemensOpc.TabIndex = 8;
+            OutToSiemensOpc.Text = "Output -> Siemens HMI (OPC UA)";
+            OutToSiemensOpc.UseVisualStyleBackColor = false;
+            OutToSiemensOpc.Visible = false;
             // 
-            // button5
+            // OutToSiemensDB
             // 
-            button5.Location = new Point(952, 308);
-            button5.Name = "button5";
-            button5.Size = new Size(227, 36);
-            button5.TabIndex = 9;
-            button5.Text = "Convert -> Siemens PLC DB";
-            button5.UseVisualStyleBackColor = true;
+            OutToSiemensDB.Location = new Point(952, 308);
+            OutToSiemensDB.Name = "OutToSiemensDB";
+            OutToSiemensDB.Size = new Size(227, 36);
+            OutToSiemensDB.TabIndex = 9;
+            OutToSiemensDB.Text = "Output -> Siemens PLC DB";
+            OutToSiemensDB.UseVisualStyleBackColor = true;
+            OutToSiemensDB.Visible = false;
             // 
-            // textBox2
+            // SiemensOpcPrefixTextBox
             // 
-            textBox2.Location = new Point(851, 237);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(328, 23);
-            textBox2.TabIndex = 10;
-            textBox2.Text = "ns=urn:Schneider:M262:customprovider;s=Application.GVL.";
+            SiemensOpcPrefixTextBox.Location = new Point(851, 237);
+            SiemensOpcPrefixTextBox.Name = "SiemensOpcPrefixTextBox";
+            SiemensOpcPrefixTextBox.Size = new Size(328, 23);
+            SiemensOpcPrefixTextBox.TabIndex = 10;
+            SiemensOpcPrefixTextBox.Text = "ns=urn:Schneider:M262:customprovider;s=Application.GVL.";
+            SiemensOpcPrefixTextBox.Visible = false;
             // 
-            // button6
+            // OutToSiemensPLC
             // 
-            button6.Location = new Point(952, 350);
-            button6.Name = "button6";
-            button6.Size = new Size(227, 36);
-            button6.TabIndex = 11;
-            button6.Text = "Schneider -> Siemens PLC DB";
-            button6.UseVisualStyleBackColor = true;
+            OutToSiemensPLC.Location = new Point(952, 350);
+            OutToSiemensPLC.Name = "OutToSiemensPLC";
+            OutToSiemensPLC.Size = new Size(227, 36);
+            OutToSiemensPLC.TabIndex = 11;
+            OutToSiemensPLC.Text = "Output -> Siemens PLC";
+            OutToSiemensPLC.UseVisualStyleBackColor = true;
+            OutToSiemensPLC.Visible = false;
             // 
-            // button7
+            // OutToSiemensHmi
             // 
-            button7.Location = new Point(952, 392);
-            button7.Name = "button7";
-            button7.Size = new Size(227, 36);
-            button7.TabIndex = 12;
-            button7.Text = "Schneider -> Siemens HMI";
-            button7.UseVisualStyleBackColor = true;
-            button7.Click += button7_Click;
+            OutToSiemensHmi.Location = new Point(952, 392);
+            OutToSiemensHmi.Name = "OutToSiemensHmi";
+            OutToSiemensHmi.Size = new Size(227, 36);
+            OutToSiemensHmi.TabIndex = 12;
+            OutToSiemensHmi.Text = "Output -> Siemens HMI";
+            OutToSiemensHmi.UseVisualStyleBackColor = true;
+            OutToSiemensHmi.Visible = false;
             // 
-            // button8
+            // SchneiderStlToScl
             // 
-            button8.Location = new Point(952, 434);
-            button8.Name = "button8";
-            button8.Size = new Size(227, 36);
-            button8.TabIndex = 13;
-            button8.Text = "Schneider STL -> Siemens SCL";
-            button8.UseVisualStyleBackColor = true;
+            SchneiderStlToScl.Location = new Point(952, 450);
+            SchneiderStlToScl.Name = "SchneiderStlToScl";
+            SchneiderStlToScl.Size = new Size(227, 36);
+            SchneiderStlToScl.TabIndex = 13;
+            SchneiderStlToScl.Text = "Schneider STL -> Siemens SCL";
+            SchneiderStlToScl.UseVisualStyleBackColor = true;
+            SchneiderStlToScl.Visible = false;
             // 
-            // button9
+            // ResultsTextBox
             // 
-            button9.Location = new Point(927, 476);
-            button9.Name = "button9";
-            button9.Size = new Size(252, 36);
-            button9.TabIndex = 14;
-            button9.Text = "Delta HMI TextBank -> Siemens HMI TextList";
-            button9.UseVisualStyleBackColor = true;
+            ResultsTextBox.Location = new Point(12, 620);
+            ResultsTextBox.Name = "ResultsTextBox";
+            ResultsTextBox.Size = new Size(766, 81);
+            ResultsTextBox.TabIndex = 16;
+            ResultsTextBox.Text = "";
             // 
-            // richTextBox3
+            // ShowResultsCheckbox
             // 
-            richTextBox3.Location = new Point(12, 620);
-            richTextBox3.Name = "richTextBox3";
-            richTextBox3.Size = new Size(766, 81);
-            richTextBox3.TabIndex = 16;
-            richTextBox3.Text = "";
-            // 
-            // checkBox4
-            // 
-            checkBox4.AutoSize = true;
-            checkBox4.Checked = true;
-            checkBox4.CheckState = CheckState.Checked;
-            checkBox4.Location = new Point(1036, 595);
-            checkBox4.Name = "checkBox4";
-            checkBox4.Size = new Size(137, 19);
-            checkBox4.TabIndex = 17;
-            checkBox4.Text = "Show results window";
-            checkBox4.UseVisualStyleBackColor = true;
+            ShowResultsCheckbox.AutoSize = true;
+            ShowResultsCheckbox.Checked = true;
+            ShowResultsCheckbox.CheckState = CheckState.Checked;
+            ShowResultsCheckbox.Location = new Point(1036, 595);
+            ShowResultsCheckbox.Name = "ShowResultsCheckbox";
+            ShowResultsCheckbox.Size = new Size(137, 19);
+            ShowResultsCheckbox.TabIndex = 17;
+            ShowResultsCheckbox.Text = "Show results window";
+            ShowResultsCheckbox.UseVisualStyleBackColor = true;
+            ShowResultsCheckbox.CheckedChanged += ShowResultsCheckbox_CheckedChanged;
             // 
             // button10
             // 
@@ -216,6 +218,7 @@
             button10.TabIndex = 18;
             button10.Text = "File as input...";
             button10.UseVisualStyleBackColor = true;
+            button10.Visible = false;
             // 
             // Form1
             // 
@@ -223,23 +226,22 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1206, 713);
             Controls.Add(button10);
-            Controls.Add(checkBox4);
-            Controls.Add(richTextBox3);
-            Controls.Add(button9);
-            Controls.Add(button8);
-            Controls.Add(button7);
-            Controls.Add(button6);
-            Controls.Add(textBox2);
-            Controls.Add(button5);
-            Controls.Add(button4);
-            Controls.Add(button3);
-            Controls.Add(textBox1);
-            Controls.Add(button2);
-            Controls.Add(checkBox2);
-            Controls.Add(checkBox1);
-            Controls.Add(button1);
-            Controls.Add(richTextBox2);
-            Controls.Add(richTextBox1);
+            Controls.Add(ShowResultsCheckbox);
+            Controls.Add(ResultsTextBox);
+            Controls.Add(SchneiderStlToScl);
+            Controls.Add(OutToSiemensHmi);
+            Controls.Add(OutToSiemensPLC);
+            Controls.Add(SiemensOpcPrefixTextBox);
+            Controls.Add(OutToSiemensDB);
+            Controls.Add(OutToSiemensOpc);
+            Controls.Add(OutToSiemensModbus);
+            Controls.Add(DeltaEtherlinkTextBox);
+            Controls.Add(OutToDeltaHmi);
+            Controls.Add(SendToClipCheckbox);
+            Controls.Add(RemapCheckBox);
+            Controls.Add(InputToOutputButton);
+            Controls.Add(OutputTextBox);
+            Controls.Add(InputTextBox);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
@@ -248,23 +250,22 @@
 
         #endregion
 
-        private RichTextBox richTextBox1;
-        private RichTextBox richTextBox2;
-        private Button button1;
-        private CheckBox checkBox1;
-        private CheckBox checkBox2;
-        private Button button2;
-        private TextBox textBox1;
-        private Button button3;
-        private Button button4;
-        private Button button5;
-        private TextBox textBox2;
-        private Button button6;
-        private Button button7;
-        private Button button8;
-        private Button button9;
-        private RichTextBox richTextBox3;
-        private CheckBox checkBox4;
+        private RichTextBox InputTextBox;
+        private RichTextBox OutputTextBox;
+        private Button InputToOutputButton;
+        private CheckBox RemapCheckBox;
+        private CheckBox SendToClipCheckbox;
+        private Button OutToDeltaHmi;
+        private TextBox DeltaEtherlinkTextBox;
+        private Button OutToSiemensModbus;
+        private Button OutToSiemensOpc;
+        private Button OutToSiemensDB;
+        private TextBox SiemensOpcPrefixTextBox;
+        private Button OutToSiemensPLC;
+        private Button OutToSiemensHmi;
+        private Button SchneiderStlToScl;
+        private RichTextBox ResultsTextBox;
+        private CheckBox ShowResultsCheckbox;
         private Button button10;
     }
 }

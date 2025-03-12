@@ -121,6 +121,18 @@ namespace ConvertTagWF
 
         };
 
+
+        public struct SchneiderTag
+        {
+            public string Name;
+            public string Type;
+            public int ArrayMin;
+            public int ArrayMax;
+            public SchneiderTag[] TagList;
+            public int MemUsage;
+            public string Comment;
+        }
+
         static void DeltaSiemensHmiOPCUA(string file)
         {
 
@@ -811,7 +823,7 @@ namespace ConvertTagWF
         {
 
             // string/wstring default 80, arba nurodytas dydis skliaustuose +
-            // pasirinkt ar is naujo
+            // pasirinkt ar is naujo + 
             // sukurt ui 
             // array of bool neveikia, isskyrus struct'uose esantys, BET paprasti array veikia ir turetu but mappinami 
             // priskirt array prie alarm arba ignore
@@ -935,12 +947,25 @@ namespace ConvertTagWF
 
 
 
-            bool remap_is_naujo = false;
+            bool remap_is_naujo = true;
+            if (remap_is_naujo)
+            {
+                Console.WriteLine(" Mappint iš naujo");
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    if (lines[i].Contains("%M"))
+                    {
+                        Console.WriteLine("Remap:" + lines[i]);
+                        lines[i] = RemoveMapped(lines[i]);
+                    }
+                        
+                }
+            }
 
             // rast jau sumapintus kintamuosius
             foreach (string line in lines)
             {
-                if (line.Contains("%M"))
+                if (line.Contains("%M") && !remap_is_naujo)
                 {
                     char identifier = line[line.IndexOf('%') + 2]; // rast kokia raide eina po %M
                     string type = (line.Substring(line.IndexOf(':') + 1, line.IndexOf(";") - (line.IndexOf(':') + 1))).Replace(" ", "").ToUpper();
@@ -1014,6 +1039,7 @@ namespace ConvertTagWF
 
 
                 }
+                
             }
 
             // sumappint likusius, pradedant nuo struct(?)
@@ -1104,6 +1130,7 @@ namespace ConvertTagWF
                         }
                     }
                 }
+                newline = newline.Replace("\n", "");
                 new_lines += newline + "\n";
             }
 
@@ -1117,42 +1144,43 @@ namespace ConvertTagWF
 
 
         }
+        static string RemoveMapped(string line)
+        {
+            string newline = line;
+            if (newline.Contains("%M"))
+            {
+                int endind = newline.IndexOf(':');
+                int startind = 0;
+                for (int i = endind; i > 0; i--)
+                {
+                    if (newline[i] == 'A')
+                        startind = i;
+                }
+            newline = newline.Remove(startind, endind - startind);
+            }
+            return newline;
+        }
 
         [STAThread]
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());   
             
 
+            //string jjja = RemoveMapped("testbool  AT %MX202.0: BOOL;");
 
-                AutoMapping();
+
+
+            // AutoMapping();
             //SchneiderMemMapper("a");
 
 
+            
+
             /*
-             * 
-             * universal vars + universal arrays + universal structs kad butu galima konvertuot is bet ko i bet ka?
-             * tada butu lengviau useriui konvertuot i bet koki tipa nes tikriausiai niekas nenaudos failo exportu, bet juos vistiek reiktu supportint
-             * universal vars turetu turet pakankamai info kad butu galima konvertuot i bet koki standarta
-             * name - type - isArray(?) - array min - array max - kintamuju sarasas - atminties uzemimas (bit)
-             * isArray galbut galima nedet, tiesiog tikrint ar array max yra 0 ?
-             * kintamuju sarasas tuscias jei ne struct
-             * atminties uzemima struct skaiciuot sudejus visus bendrai
-             * skaitant schneider iskart pagriebt visus structus ir paskirt jiems atminties dydzius kad butu galima struct viduj struct apskaiciuot?
-             * 
-
-             * atkartot memory mapper: paimt nukopijuota schneider var sarasa, pridet AT atmintis kur truksta, esancias AT atmintis palikt vietoj (padaryt pasirinkima?)
-             * atkartot eksporta i delta, kazkaip nustatyt koks etherlink prefixas
-             * padaryt winforms programa 
-             * automatinis failu atpazinimas konvertavimui?
-             * konvertavimas is siemens i delta/schneider(tikriausiai useless)
-             * prie program blocku konvertavimu tag'u pridet DB pavadinima?
-             * delta isp siemens db funkcija (nebutina)
-             * delta isp siemens programa (nebutina)
-             * schneider - siemens modbus (realiai paimt i delta - siemens), kazkaip sukapot structus
-             
-             */
-
             string file = string.Empty;
             try
             {
@@ -1221,7 +1249,7 @@ namespace ConvertTagWF
 
             Console.WriteLine("end");
             Console.ReadLine();
-
+            */
 
         }
     }
