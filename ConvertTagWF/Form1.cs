@@ -8,6 +8,7 @@ using System.Collections;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.Vml;
 using System.Text.RegularExpressions;
+using static ConvertTagWF.Program;
 
 
 namespace ConvertTagWF
@@ -124,7 +125,7 @@ namespace ConvertTagWF
         };
 
 
-   
+
 
         static void DeltaSiemensHmiOPCUA(string file)
         {
@@ -745,7 +746,7 @@ namespace ConvertTagWF
             */
         }
 
- 
+
 
 
         static (int, int, string) ParseArray(string arr)
@@ -793,7 +794,7 @@ namespace ConvertTagWF
                             can_fill = false;
                             break;
                         }
-                            
+
 
                     }
                     if (can_fill)
@@ -808,12 +809,12 @@ namespace ConvertTagWF
                         int ret_value = Convert.ToInt32(Math.Ceiling((i) / (standardsize * 1.0)) * standardsize);
                         //int ret_value = Convert.ToInt32(Math.Ceiling((i-length) / (standardsize * 1.0)));
                         // fill all backwards
-                        for (int j = (i + length-1); j > 0; j--)
+                        for (int j = (i + length - 1); j > 0; j--)
                             mem[j] = true;
-                        
+
                         return ret_value;
                     }
-                    
+
                     /*
                     if (startindex == -1)
                         startindex = i;
@@ -837,7 +838,7 @@ namespace ConvertTagWF
                 }
 
 
-                
+
 
             }
 
@@ -848,7 +849,7 @@ namespace ConvertTagWF
         }
         static string SchneiderMemMapper(string text, bool remap) // text is clipboard 
         {
-           
+
             // string/wstring default 80, arba nurodytas dydis skliaustuose +
             // pasirinkt ar is naujo + 
             // sukurt ui 
@@ -881,7 +882,7 @@ namespace ConvertTagWF
 
 
             var lines = text.Split(new[] { '\r', '\n' });
-            
+
 
             //rast struct, sudet i duomenu tipu sarasa 
             for (int i = 0; i < lines.Length; i++)
@@ -890,16 +891,21 @@ namespace ConvertTagWF
                 {
                     string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", "").ToUpper(); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
                     double struct_memlength = 0; // visada bus int bet double reikalingas skaiciavimui veliau
-                    if (struct_name == "STRUC_SYSTEM")
-                        Console.Write("");
+
                     int last_tag_size = 0;
                     while (!lines[i].Contains("END_TYPE"))
                     {
                         if (lines[i].Contains(":") && lines[i].Contains(";")) // kazkur reikia tikrint ar ne komentaras
                         {
                             string varname = lines[i].Substring(0, lines[i].IndexOf(":"));
+                            if (varname.Contains("//"))
+                            {
+                                i++;
+                                continue;
+                            }
+                                
 
-                            
+
                             // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
                             string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
                             if (type.Contains(":="))
@@ -922,7 +928,7 @@ namespace ConvertTagWF
                                     string_mem_usage = 80 * 16;
                                     struct_memlength += string_mem_usage;
                                 }
-                                
+
 
 
 
@@ -943,7 +949,7 @@ namespace ConvertTagWF
                                     string_mem_usage = 80 * 8;
                                     struct_memlength += string_mem_usage;
                                 }
-                                
+
                             }
                             else
                             {
@@ -968,8 +974,8 @@ namespace ConvertTagWF
                                         last_tag_size = SchneiderDataTypes[datatype];
                                         i++;
 
-                                        
-                                        
+
+
                                         continue;
 
                                     }
@@ -979,15 +985,15 @@ namespace ConvertTagWF
                                         i++; continue;
                                     }
                                 }
-                               
+
                                 type = type.Replace(" ", "");
                                 struct_memlength += SchneiderDataTypes[type];
-                                
+
                             }
                             // tikrinimas cia
                             if (last_tag_size == 0)
                                 last_tag_size = SchneiderDataTypes[type];
-                            
+
                             if (last_tag_size < SchneiderDataTypes[type] && struct_memlength % SchneiderDataTypes[type] != 0)
                             {
                                 Console.WriteLine(last_tag_size + " yra mazesnis uz " + SchneiderDataTypes[type]);
@@ -996,7 +1002,7 @@ namespace ConvertTagWF
 
                             last_tag_size = SchneiderDataTypes[type];
                             Console.WriteLine(struct_memlength);
-                            
+
 
                         }
 
@@ -1007,18 +1013,16 @@ namespace ConvertTagWF
                     struct_memlength = Math.Ceiling(struct_memlength / 64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
                     try
                     {
-                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength - 7)); // nezinau kodel -7 bet kazkur prisideda tiek per daug ir atimant susitaiso
+                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength -7)); // nezinau kodel -7 bet kazkur prisideda tiek per daug ir atimant susitaiso
                         SchneiderTypeMemIdentifiers.Add(struct_name, 'L');
                     }
                     catch
                     {
                         // struct jau idetas
                     }
-                    
 
-        
-                  
-                   
+
+
                     Console.WriteLine("struct " + struct_name + " length " + struct_memlength);
                 }
             }
@@ -1136,7 +1140,7 @@ namespace ConvertTagWF
 
                     string varname = RemoveMapped(line);
                     varname = varname.Substring(0, varname.IndexOf(':'));
-                    
+
 
 
                 }
@@ -1198,9 +1202,9 @@ namespace ConvertTagWF
                             if (var_type.Contains("("))
                             {
                                 string string_length = var_type.Substring(var_type.IndexOf('(') + 1, var_type.IndexOf(')') - var_type.IndexOf('(') - 1);
-                                
+
                                 var_mem_length = Convert.ToInt32(string_length) * 16;
-                                
+
                             }
                             else
                             {
@@ -1243,6 +1247,8 @@ namespace ConvertTagWF
                                 Console.ForegroundColor = ConsoleColor.Red;
                                 Console.WriteLine("Tipas " + var_type + " skippinamas");
                                 Console.ForegroundColor = ConsoleColor.White;
+                                newline = newline.Replace("\n", "");
+                                new_lines += newline + "\n";
                                 continue;
 
                             }
@@ -1265,7 +1271,7 @@ namespace ConvertTagWF
                             // visi kiti is schneiderdatatypes
 
 
-                            
+
                             double free_mem_index = CheckAndFillMem(var_mem_length, standard_tag_size);
 
                             // gautas bitas / var mem ilgio rounded up 
@@ -1281,7 +1287,7 @@ namespace ConvertTagWF
                             {
 
                                 newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ".0" + ":  " + var_type + ";";
-                                
+
 
 
                             }
@@ -1290,14 +1296,14 @@ namespace ConvertTagWF
                                 if (array_tipas != string.Empty)
                                 {
                                     newline = var_name + " AT %M" + SchneiderTypeMemIdentifiers[array_tipas] + l + ":  " + "ARRAY[" + arr_min + ".." + arr_max + "] OF " + array_tipas + ";";
-                                    
+
                                 }
                                 else
                                 {
                                     newline = var_name + "AT %M" + SchneiderTypeMemIdentifiers[var_type] + l + ":  " + var_type + ";";
-                                    
+
                                 }
-                                    
+
 
                             }
 
@@ -1330,7 +1336,7 @@ namespace ConvertTagWF
                 int startind = 0;
                 for (int i = endind; i > 0; i--)
                 {
-                    if (newline[i] == 'A' && newline[i+1] == 'T' && newline[i-1] == ' ') // negrazus sprendimas bet turetu veikt
+                    if (newline[i] == 'A' && newline[i + 1] == 'T' && newline[i - 1] == ' ') // negrazus sprendimas bet turetu veikt
                         startind = i;
                 }
                 newline = newline.Remove(startind, endind - startind);
@@ -1346,11 +1352,208 @@ namespace ConvertTagWF
 
         }
 
+        static int ParseString(string text)
+        {
+            if (text.ToUpper().Contains("WSTRING"))
+            {
+                int string_mem_usage = 0;
+                if (text.Contains("(") && text.Contains(")"))
+                {
+                    // jei wstring dydis deklaruotas skliaustuose:
+                    string string_length = text.Substring(text.IndexOf('(') + 1, text.IndexOf(')') - text.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                    string_mem_usage = Convert.ToInt32(string_length) * 16;
+
+                }
+                else
+                {
+                    // default wstring dydis (80 simboliu po 1 word)
+                    string_mem_usage = 80 * 16;
+                }
+
+                return string_mem_usage;
+
+
+            }
+            else if (text.ToUpper().Contains("STRING"))
+            {
+                int string_mem_usage = 0;
+                if (text.Contains("(") && text.Contains(")"))
+                {
+                    // jei string dydis deklaruotas skliaustuose:
+                    string string_length = text.Substring(text.IndexOf('(') + 1, text.IndexOf(')') - text.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                    string_mem_usage = Convert.ToInt32(string_length) * 8; // 1 byte per char
+                }
+                else
+                {
+                    // default string dydis (80 simboliu po 1 byte)
+                    string_mem_usage = 80 * 8;
+                }
+                return string_mem_usage;
+               
+            }
+            return 0;
+        }
+        struct SchneiderVar
+        {
+            public string Name { get; set; }
+            public int MemUsage { get; set; }
+        }
+
+        struct SchneiderStruct
+        {
+            public string Name { get; set; }
+            public List<SchneiderVar> VarList { get; set; }
+        }
         static void SchneiderSiemensHmiModbus(string path)
         {
 
         }
 
+        static void SchneiderDeltaHmi(string mapped_vars, string etherlink_prefix)
+        {
+            /* mapped_vars = mapped schneider vars
+             * etherlink_prefix = default {EtherLink1}1@W4- , galima pakeist textboxe
+             * array - word/bit kuris uzima daug vietos 
+             * struct - isskaidyt i atskirus vars , structname_varname
+             * susikurt struct i custom tipa, kuri dumpint kai daeina iki jo
+             * neatpazintus tipus ignoruot visiskai
+             * modbus yra word-based, tai vienetai skaiciuojami wordais, jei bool/byte prisideda ant galo .00 arba .08
+             */
+
+            var lines = mapped_vars.Split(new[] { '\r', '\n' });
+            List<SchneiderStruct> strukturos = new List<SchneiderStruct>();
+            List<SchneiderVar> tags = new List<SchneiderVar>();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                // struct skaitymas 
+                string ttt = lines[i];
+                Console.WriteLine(ttt);
+                if (lines[i].Contains("TYPE") && lines[i].Contains(":"))
+                {
+                    SchneiderStruct sch_struct = new();
+                    string struct_name = lines[i].Replace("TYPE", "").Replace(":", "").Replace(" ", "").ToUpper(); // isfiltruot TYPE, tarpus ir  : kad gaut pavadinima
+                    sch_struct.Name = struct_name;
+                    sch_struct.VarList = new List<SchneiderVar>();
+                    while (!lines[i].Contains("END_TYPE"))
+                    {
+                        if (lines[i].Contains(":") && lines[i].Contains(";")) // kazkur reikia tikrint ar ne komentaras
+                        {
+                            SchneiderVar schneiderVar = new();
+                            string varname = lines[i].Substring(0, lines[i].IndexOf(":"));
+
+                            schneiderVar.Name = varname;
+                            // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
+                            string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
+                            if (type.Contains(":="))
+                                type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
+                            if (!type.Contains("[") && !type.Contains("]"))
+                                type = type.Replace(" ", "");
+                            if (type.ToUpper().Contains("WSTRING"))
+                            {
+                                int string_mem_usage = 0;
+                                if (type.Contains("(") && type.Contains(")"))
+                                {
+                                    // jei wstring dydis deklaruotas skliaustuose:
+                                    string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                    string_mem_usage = Convert.ToInt32(string_length) * 16;
+                                    
+                                }
+                                else
+                                {
+                                    // default wstring dydis (80 simboliu po 1 word)
+                                    string_mem_usage = 80 * 16;
+                                }
+
+                                schneiderVar.MemUsage = string_mem_usage;
+
+
+                            }
+                            else if (type.ToUpper().Contains("STRING"))
+                            {
+                                int string_mem_usage = 0;
+                                if (type.Contains("(") && type.Contains(")"))
+                                {
+                                    // jei string dydis deklaruotas skliaustuose:
+                                    string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
+                                    string_mem_usage = Convert.ToInt32(string_length) * 8; // 1 byte per char
+                                }
+                                else
+                                {
+                                    // default string dydis (80 simboliu po 1 byte)
+                                    string_mem_usage = 80 * 8;
+                                }
+                                schneiderVar.MemUsage = string_mem_usage;
+                            }
+                            else
+                            {
+                                if (type.ToUpper().Contains("[")) // array tikrinimas
+                                {
+                                    //Console.WriteLine(i);
+                                    Regex limitsregex = new Regex(@"\d+"); // skaiciu tikrinimo regex
+                                    Regex datatyperegex = new Regex(@"OF\s+(\w+)"); // rast duomeni tipa po teksto "OF"
+                                    int array_mem_usage = 0;
+                                    Match match = datatyperegex.Match(type);
+
+                                    var datatype = match.Groups[1].Value.ToUpper();
+
+                                    MatchCollection matches = limitsregex.Matches(type);
+
+                                    if (matches.Count >= 2) // jei yra 2 matches tai reiskias array dydis deklaruotas skaiciais, jei nera 2 tada ignore
+                                    {
+                                        int arr_min = int.Parse(matches[0].Value);
+                                        int arr_max = int.Parse(matches[1].Value);
+                                        array_mem_usage = (arr_max + 1 - arr_min) * SchneiderDataTypes[datatype];
+                                        schneiderVar.MemUsage = array_mem_usage;
+                                        i++;
+
+
+
+                                        
+
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("array su tag dydzio deklaracija"); // gali sukelt problemu?
+                                        i++;
+                                    }
+                                }
+                                
+                                type = type.Replace(" ", "");
+                                if (schneiderVar.MemUsage == 0)
+                                    schneiderVar.MemUsage = SchneiderDataTypes[type];
+                               
+
+                            }
+                            sch_struct.VarList.Add(schneiderVar);
+                        }
+
+                        i++;
+                    }
+                    strukturos.Add(sch_struct);
+
+
+                }
+
+                // paprastu vars skaitymas
+
+            }
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Contains("%M"))
+                {
+                    // kiekviena eilute patikrint ar tai yra struct tipas, array naudot ParseArray, string uhhh, 
+                    string parsed_line = RemoveMapped(lines[i]);
+                    string type = (parsed_line.Substring(parsed_line.IndexOf(':') + 1, parsed_line.IndexOf(";") - (parsed_line.IndexOf(':') + 1))).ToUpper();
+                    string varname = parsed_line.Substring(0, parsed_line.IndexOf(':'));
+                    // patikrint ar tipas array/string
+                    // isimt tarpus(?), tikrint ar struct/standartinis tag
+
+
+                }
+            }
+
+        }
 
         public Form1()
         {
@@ -1421,6 +1624,25 @@ namespace ConvertTagWF
                 string path = siemensmodbusfile.FileName;
                 SchneiderSiemensHmiModbus(path);
             }
+        }
+
+        private void UnmapButton_Click(object sender, EventArgs e)
+        {
+            //unmap input - send to output
+            string newline = "";
+            var lines = InputTextBox.Text.Split(new[] { '\r', '\n' });
+            foreach (string line in lines)
+            {
+                newline += RemoveMapped(line) + "\n";
+            }
+            OutputTextBox.Text = newline;
+            ResultsTextBox.Text += DateTime.Now + "; Unmapped vars";
+        }
+
+
+        private void OutToDeltaHmi_Click(object sender, EventArgs e)
+        {
+            SchneiderDeltaHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text);
         }
     }
 }

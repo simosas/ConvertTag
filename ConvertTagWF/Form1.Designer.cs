@@ -45,6 +45,7 @@
             ResultsTextBox = new RichTextBox();
             ShowResultsCheckbox = new CheckBox();
             button10 = new Button();
+            UnmapButton = new Button();
             SuspendLayout();
             // 
             // InputTextBox
@@ -108,6 +109,7 @@
             OutToDeltaHmi.TabIndex = 5;
             OutToDeltaHmi.Text = "Output -> Delta HMI";
             OutToDeltaHmi.UseVisualStyleBackColor = true;
+            OutToDeltaHmi.Click += OutToDeltaHmi_Click;
             // 
             // DeltaEtherlinkTextBox
             // 
@@ -220,11 +222,22 @@
             button10.UseVisualStyleBackColor = true;
             button10.Visible = false;
             // 
+            // UnmapButton
+            // 
+            UnmapButton.Location = new Point(480, 19);
+            UnmapButton.Name = "UnmapButton";
+            UnmapButton.Size = new Size(86, 26);
+            UnmapButton.TabIndex = 19;
+            UnmapButton.Text = "Unmap";
+            UnmapButton.UseVisualStyleBackColor = true;
+            UnmapButton.Click += UnmapButton_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1421, 713);
+            Controls.Add(UnmapButton);
             Controls.Add(button10);
             Controls.Add(ShowResultsCheckbox);
             Controls.Add(ResultsTextBox);
@@ -267,5 +280,6 @@
         private RichTextBox ResultsTextBox;
         private CheckBox ShowResultsCheckbox;
         private Button button10;
+        private Button UnmapButton;
     }
 }

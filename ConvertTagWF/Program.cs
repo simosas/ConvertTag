@@ -1164,6 +1164,8 @@ namespace ConvertTagWF
         [STAThread]
         static void Main(string[] args)
         {
+
+
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
