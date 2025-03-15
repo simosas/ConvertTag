@@ -1154,7 +1154,8 @@ namespace ConvertTagWF
         [STAThread]
         static void Main(string[] args)
         {
-
+            int num = 39;
+            var tttst = (num + 3) & ~3;
 
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();

@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Vml;
 using System.Text.RegularExpressions;
 using static ConvertTagWF.Program;
 using DocumentFormat.OpenXml.Office2021.Excel.RichDataWebImage;
+using System.Net.Security;
 
 
 namespace ConvertTagWF
@@ -1409,6 +1410,9 @@ namespace ConvertTagWF
             public int MemUsage { get; set; }
 
             public string Type { get; set; }
+
+            public bool IsLastStructVar { get; set; }
+            public bool IsFirstStructVar { get; set; }
         }
 
         struct SchneiderStruct
@@ -1614,12 +1618,21 @@ namespace ConvertTagWF
                             {
                                 cia_struct = true;
                                 // unpack struct, sudet i var sarasa tiesiog?
-                                foreach (var struct_var in str.VarList)
+                                for (int j = 0; j < str.VarList.Count; j++)
                                 {
-                                    if (!struct_var.Name.Contains("//"))
+                                    if (!str.VarList[j].Name.Contains("//"))
                                     {
-                                        SchneiderVar tempvar = struct_var;
-                                        tempvar.Name = varname.Replace("\t", "") + "_" + struct_var.Name;
+                                        SchneiderVar tempvar = str.VarList[j];
+                                        if (j+1 == str.VarList.Count)
+                                        {
+                                            tempvar.IsLastStructVar = true;
+                                        }
+                                        if (j == 0)
+                                        {
+                                            tempvar.IsFirstStructVar = true;
+                                        }
+                                            
+                                        tempvar.Name = varname.Replace("\t", "") + "_" + str.VarList[j].Name;
                                         tags.Add(tempvar);
                                     }
                                         
@@ -1652,7 +1665,7 @@ namespace ConvertTagWF
 
                 }
             }
-            if (delta)
+            if (delta) // todo: padaryt bendresne funkcija kad nereiketu copy pastint kodo daug 
             {
                 double word_tracker = 1;
                 List<string> deltastrings = new();
@@ -1677,11 +1690,20 @@ namespace ConvertTagWF
                 // sudet visus tags is "tags" saraso ir suskirstit jiems atmintis
                 // pradet nuo 1 word, jei dydis 8 bitai tai pridet .00 arba .08
                 // dydis 8 = BIT, visi kiti word
+                //bool lastvar_fromstruct = false;
                 foreach (SchneiderVar var in tags)
                 {
+                    
+                   
                     string clean_name = var.Name.Replace("\t", "");
                     string type = (var.MemUsage > 8) ? "WORD" : "BIT";
                     string mem_address = etherlink_prefix;
+                    if (var.IsFirstStructVar)
+                    {
+                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker-1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
+                        word_tracker++; //grazinam atimta 1
+                    }
+                         
                     if (var.MemUsage == 8)
                     {
                         if (word_tracker - Math.Floor(word_tracker) == 0.5)
@@ -1721,24 +1743,33 @@ namespace ConvertTagWF
                                 try
                                 {
 
-                                    standard_mem_size = SchneiderDataTypesOriginal[var.Type]; // bandyt imt ne struct
+                                    standard_mem_size = SchneiderDataTypesOriginal[var.Type];
                                 }
                                 catch
                                 {
-                                    standard_mem_size = 64; // struct
+                                    standard_mem_size = 64; // del visa ko, jei kazkas praslystu
                                 }
                             }
 
 
                             
                             if (((word_tracker - 1) * 16) % standard_mem_size != 0)    // ta pati logika kaip mappinime, persokt kai kurias teoriskai laisvas atmintis kad sulygint su schneiderio atminties logika
-                                word_tracker += ((standard_mem_size / 16) - 1);
+                                word_tracker += ((standard_mem_size / 16) - 1);  //nereikia -1-u ?
+
                         }
                         mem_address += word_tracker;
                         word_tracker += (var.MemUsage / 16);
+                        
+                    }
+                    if (var.IsLastStructVar)
+                    {
+                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker - 1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
+                        word_tracker++; //grazinam atimta 1
                     }
                     string newline = clean_name + "," + type + "," + mem_address + ",";
                     deltastrings.Add(newline);
+
+                   
 
                 }
 
@@ -1831,7 +1862,7 @@ namespace ConvertTagWF
             {
                 string path = exportedfile.FileName;
                 SchneiderToHmi(OutputTextBox.Text, "", false, path);
-                ResultsTextBox.Text += DateTime.Now + "; Exported to Siemens HMI tags - " + path;
+                ResultsTextBox.Text += DateTime.Now + "; Exported to Siemens HMI tags - " + path + "\n";
             }
         }
 
@@ -1845,7 +1876,7 @@ namespace ConvertTagWF
                 newline += RemoveMapped(line) + "\n";
             }
             OutputTextBox.Text = newline;
-            ResultsTextBox.Text += DateTime.Now + "; Unmapped vars";
+            ResultsTextBox.Text += DateTime.Now + "; Unmapped vars" + "\n"; 
         }
 
 
@@ -1859,7 +1890,7 @@ namespace ConvertTagWF
             {
                 string path = exportedfile.FileName;
                 SchneiderToHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text, true, path);
-                ResultsTextBox.Text += DateTime.Now + "; Exported to Delta HMI tags - " + path;
+                ResultsTextBox.Text += DateTime.Now + "; Exported to Delta HMI tags - " + path + "\n";
             }
         }
     }
