@@ -9,6 +9,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.Vml;
 using System.Text.RegularExpressions;
 using static ConvertTagWF.Program;
+using DocumentFormat.OpenXml.Office2021.Excel.RichDataWebImage;
 
 
 namespace ConvertTagWF
@@ -116,6 +117,13 @@ namespace ConvertTagWF
             {"LREAL", 64 }, {"STRING", 64}, {"WSTRING", 256}, {"TIME", 32}
 
         };
+        public static Dictionary<string, int> SchneiderDataTypesOriginal = new Dictionary<string, int>()
+        {
+            {"BOOL", 8 }, {"BYTE", 8}, {"WORD", 16}, {"DWORD", 32}, {"LWORD", 64}, {"SINT", 8}, {"USINT", 8},
+            {"INT", 16 }, {"UINT", 16}, {"DINT", 32}, {"UDINT", 32}, {"LINT", 64}, {"ULINT", 64}, {"REAL", 32},
+            {"LREAL", 64 }, {"STRING", 64}, {"WSTRING", 256}, {"TIME", 32}
+
+        };
         public static Dictionary<string, char> SchneiderTypeMemIdentifiers = new Dictionary<string, char>()
         {
             {"BOOL", 'X' }, {"BYTE", 'B'}, {"WORD", 'W'}, {"DWORD", 'D'}, {"LWORD", 'L' }, {"SINT", 'B'}, {"USINT", 'B'},
@@ -123,6 +131,8 @@ namespace ConvertTagWF
             {"LREAL", 'L' }, {"STRING", 'B'}, {"WSTRING", 'W'}, {"TIME", 'D'}
 
         };
+
+        public static string DefaultDeltaHmiTags = "WALARM_GROUP,WORD,$1,\nALARM_FILTER,WORD,$12,\nNENAUDOJAMAS1,BIT,$13.01,\nNENAUDOJAMAS2,BIT,$13.02,\nNENAUDOJAMAS3,BIT,$13.03,\nNENAUDOJAMAS4,BIT,$13.04,\nNENAUDOJAMAS5,BIT,$13.05,\nWRECIPE_CUTPAGE,WORD,$2,\nWRECIPE_TOTALPAGE,WORD,$3,\nBRECIPE_PAGEUP,BIT,$4.00,\nBRECIPE_PAGEDOWN,BIT,$4.01,\nBCOPY,BIT,$5.00,\nBPASTE,BIT,$5.01,\nBREPLACE,BIT,$5.02,\nBINSERT,BIT,$5.03,\nBCUT,BIT,$5.04,\nEMPTY_STRING,WORD,$6,\nALARM_SORTING,WORD,$7,\nWALARM_SORTING_CONTROL_ADDR,WORD,$10,\nWALARM_SORT_ADDR,WORD,$11,\nRCP_NO_LATCH,WORD,$M100,\nBSENDTOROBOTREMINDER,BIT,$M101.00,\nWPRODUCT_NAME,WORD,RCP0,\nUpdateRCPw_OK,WORD,$100,\nUpdateRCPw_offsetDest,WORD,$101,\nUpdateRCPw_offsetSrc,WORD,$102,\nUpdateRCPw_arrLen,WORD,$103,";
 
 
 
@@ -1352,7 +1362,7 @@ namespace ConvertTagWF
 
         }
 
-        static int ParseString(string text)
+        static (int,string) ParseString(string text)
         {
             if (text.ToUpper().Contains("WSTRING"))
             {
@@ -1370,7 +1380,7 @@ namespace ConvertTagWF
                     string_mem_usage = 80 * 16;
                 }
 
-                return string_mem_usage;
+                return (string_mem_usage,"WSTRING");
 
 
             }
@@ -1388,15 +1398,17 @@ namespace ConvertTagWF
                     // default string dydis (80 simboliu po 1 byte)
                     string_mem_usage = 80 * 8;
                 }
-                return string_mem_usage;
-               
+                return (string_mem_usage, "STRING");
+
             }
-            return 0;
+            return (0,"");
         }
         struct SchneiderVar
         {
             public string Name { get; set; }
             public int MemUsage { get; set; }
+
+            public string Type { get; set; }
         }
 
         struct SchneiderStruct
@@ -1404,12 +1416,9 @@ namespace ConvertTagWF
             public string Name { get; set; }
             public List<SchneiderVar> VarList { get; set; }
         }
-        static void SchneiderSiemensHmiModbus(string path)
-        {
 
-        }
 
-        static void SchneiderDeltaHmi(string mapped_vars, string etherlink_prefix)
+        static void SchneiderToHmi(string mapped_vars, string etherlink_prefix, bool delta, string path) // bool delta = ar exportuot i delta (true) ar i siemens (false), path = kur saugoti
         {
             /* mapped_vars = mapped schneider vars
              * etherlink_prefix = default {EtherLink1}1@W4- , galima pakeist textboxe
@@ -1418,6 +1427,7 @@ namespace ConvertTagWF
              * susikurt struct i custom tipa, kuri dumpint kai daeina iki jo
              * neatpazintus tipus ignoruot visiskai
              * modbus yra word-based, tai vienetai skaiciuojami wordais, jei bool/byte prisideda ant galo .00 arba .08
+             * ismeest tabus ir tarpus is pavadinimu kai jau rasomas rezultatas
              */
 
             var lines = mapped_vars.Split(new[] { '\r', '\n' });
@@ -1446,8 +1456,11 @@ namespace ConvertTagWF
                             string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
                             if (type.Contains(":="))
                                 type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
+                            
                             if (!type.Contains("[") && !type.Contains("]"))
                                 type = type.Replace(" ", "");
+                            type = type.ToUpper();
+                            schneiderVar.Type = type;
                             if (type.ToUpper().Contains("WSTRING"))
                             {
                                 int string_mem_usage = 0;
@@ -1504,7 +1517,7 @@ namespace ConvertTagWF
                                         int arr_max = int.Parse(matches[1].Value);
                                         array_mem_usage = (arr_max + 1 - arr_min) * SchneiderDataTypes[datatype];
                                         schneiderVar.MemUsage = array_mem_usage;
-                                        i++;
+                                        //i++;
 
 
 
@@ -1514,7 +1527,7 @@ namespace ConvertTagWF
                                     else
                                     {
                                         Console.WriteLine("array su tag dydzio deklaracija"); // gali sukelt problemu?
-                                        i++;
+                                        //i++;
                                     }
                                 }
                                 
@@ -1546,12 +1559,207 @@ namespace ConvertTagWF
                     string parsed_line = RemoveMapped(lines[i]);
                     string type = (parsed_line.Substring(parsed_line.IndexOf(':') + 1, parsed_line.IndexOf(";") - (parsed_line.IndexOf(':') + 1))).ToUpper();
                     string varname = parsed_line.Substring(0, parsed_line.IndexOf(':'));
-                    // patikrint ar tipas array/string
-                    // isimt tarpus(?), tikrint ar struct/standartinis tag
+                    int var_mem_usage = 0;
+                   // varname = varname.Replace("\t", ""); // tab ismetimas
+                    //varname = varname.Replace(" ", ""); // tarpu ismetimas
+                    if (type.Contains(":="))
+                        type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
+
+                    if (!type.Contains("[") && !type.Contains("]")) //jei ne array, atsikratyt tarpu
+                        type = type.Replace(" ", "");
+                    // 1.patikrint ar tipas array/string
+                    // 2.tikrint ar struct/standartinis tag
+
+                    // reikia tik name ir mem usage
+                    if (type.Contains("ARRAY"))
+                    {
+                        int arr_max, arr_min;
+                        string arr_type = "";
+                        (arr_min, arr_max, arr_type) = ParseArray(type); //parse array grazina array ribas (min-max) ir tipa
+                        if (!varname.Contains("//"))
+                        {
+                            SchneiderVar tag = new SchneiderVar()
+                            {
+                                Name = varname,
+                                Type = arr_type,
+                                MemUsage = (arr_max + 1 - arr_min) * SchneiderDataTypes[arr_type]
+                            };
+                            tags.Add(tag);
+                        }
+                        
+                    }
+                    else if (type.Contains("STRING"))
+                    {
+
+                        (var_mem_usage, type) = ParseString(type); //parsestring grazina string dydi bitais ir string/wstring
+                        if (!varname.Contains("//"))
+                        {
+                            SchneiderVar tag = new SchneiderVar()
+                            {
+                                Name = varname,
+                                MemUsage = var_mem_usage,
+                                Type = type
+                            };
+                            tags.Add(tag);
+                        }
+                        
+
+                    }
+                    else
+                    {
+                        bool cia_struct = false;
+                        foreach (var str in strukturos)
+                        {
+                            if (type == str.Name)
+                            {
+                                cia_struct = true;
+                                // unpack struct, sudet i var sarasa tiesiog?
+                                foreach (var struct_var in str.VarList)
+                                {
+                                    if (!struct_var.Name.Contains("//"))
+                                    {
+                                        SchneiderVar tempvar = struct_var;
+                                        tempvar.Name = varname.Replace("\t", "") + "_" + struct_var.Name;
+                                        tags.Add(tempvar);
+                                    }
+                                        
+                                }
+                                    
+                                
+
+                            }
+                        }
+                        // jei ne struct:
+                        if (!cia_struct)
+                        {
+                            if (!varname.Contains("//"))
+                            {
+                                SchneiderVar tag = new SchneiderVar()
+                                {
+                                    Name = varname,
+                                    MemUsage = SchneiderDataTypes[type],
+                                    Type = type
+                                };
+                                tags.Add(tag);
+                            }    
+                            
+                        }
+                        
+                        
+
+                    }
 
 
                 }
             }
+            if (delta)
+            {
+                double word_tracker = 1;
+                List<string> deltastrings = new();
+                StreamWriter writer = new StreamWriter(path);
+                writer.WriteLine("Define Name,Type,Address,Description");
+                string[] defaultlines;
+                //sudet default eilutes 
+                try
+                {
+                    defaultlines = File.ReadAllLines("default_delta_tags.txt");
+                }
+                catch
+                {
+                    //default lines failas neegzistuoja, sukurt ji ir panaudot standartines eilutes
+                    defaultlines = DefaultDeltaHmiTags.Split(new[] { '\r', '\n' });
+                    File.WriteAllLines("default_delta_tags.txt", defaultlines);
+                }
+                foreach (string s in defaultlines)
+                {
+                    deltastrings.Add(s);
+                }
+                // sudet visus tags is "tags" saraso ir suskirstit jiems atmintis
+                // pradet nuo 1 word, jei dydis 8 bitai tai pridet .00 arba .08
+                // dydis 8 = BIT, visi kiti word
+                foreach (SchneiderVar var in tags)
+                {
+                    string clean_name = var.Name.Replace("\t", "");
+                    string type = (var.MemUsage > 8) ? "WORD" : "BIT";
+                    string mem_address = etherlink_prefix;
+                    if (var.MemUsage == 8)
+                    {
+                        if (word_tracker - Math.Floor(word_tracker) == 0.5)
+                        {
+                            mem_address += Math.Floor(word_tracker) +  ".08";
+                        }
+                        else
+                        {
+                            mem_address += Math.Floor(word_tracker) + ".00";
+                        }
+                        
+                        word_tracker += 0.5;
+                    }
+                    else
+                    {
+                        word_tracker = Math.Ceiling(word_tracker);
+                        if (var.MemUsage > 16)
+                        {
+                            int standard_mem_size = 0;
+                            if (var.Type == "WSTRING")
+                            {
+                                standard_mem_size = 16;
+                            }
+                            else if (var.Type == "STRING")
+                            {
+                                standard_mem_size = 8;
+                            }
+                            else if (var.Type.Contains("ARRAY"))
+                            {
+                                int temp1, temp2;
+                                string ar_type;
+                                (temp1, temp2, ar_type) = ParseArray(var.Type);
+                                standard_mem_size = SchneiderDataTypesOriginal[ar_type]; // jei array of struct gali kilt problemu?
+                            }
+                            else
+                            {
+                                try
+                                {
+
+                                    standard_mem_size = SchneiderDataTypesOriginal[var.Type]; // bandyt imt ne struct
+                                }
+                                catch
+                                {
+                                    standard_mem_size = 64; // struct
+                                }
+                            }
+
+
+                            
+                            if (((word_tracker - 1) * 16) % standard_mem_size != 0)    // ta pati logika kaip mappinime, persokt kai kurias teoriskai laisvas atmintis kad sulygint su schneiderio atminties logika
+                                word_tracker += ((standard_mem_size / 16) - 1);
+                        }
+                        mem_address += word_tracker;
+                        word_tracker += (var.MemUsage / 16);
+                    }
+                    string newline = clean_name + "," + type + "," + mem_address + ",";
+                    deltastrings.Add(newline);
+
+                }
+
+                foreach (string line in deltastrings)
+                {
+                    string templine = line.Replace("\t", "");
+                    templine = templine.Replace(" ", "");
+                    writer.WriteLine(templine);
+                    
+                }
+                    
+                writer.Close();
+
+            }
+
+            if (!delta)
+            {
+                //rasymas i siemens
+            }
+            
+            
 
         }
 
@@ -1615,14 +1823,15 @@ namespace ConvertTagWF
 
         private void OutToSiemensModbus_Click(object sender, EventArgs e)
         {
-            SaveFileDialog siemensmodbusfile = new SaveFileDialog
+            SaveFileDialog exportedfile = new SaveFileDialog
             {
                 Filter = "Excel Files (*.xlsx)|*.xlsx"
             };
-            if (siemensmodbusfile.ShowDialog() == DialogResult.OK)
+            if (exportedfile.ShowDialog() == DialogResult.OK)
             {
-                string path = siemensmodbusfile.FileName;
-                SchneiderSiemensHmiModbus(path);
+                string path = exportedfile.FileName;
+                SchneiderToHmi(OutputTextBox.Text, "", false, path);
+                ResultsTextBox.Text += DateTime.Now + "; Exported to Siemens HMI tags - " + path;
             }
         }
 
@@ -1642,7 +1851,16 @@ namespace ConvertTagWF
 
         private void OutToDeltaHmi_Click(object sender, EventArgs e)
         {
-            SchneiderDeltaHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text);
+            SaveFileDialog exportedfile = new SaveFileDialog
+            {
+                Filter = "Comma-separated values (*.csv)|*.csv"
+            };
+            if (exportedfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = exportedfile.FileName;
+                SchneiderToHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text, true, path);
+                ResultsTextBox.Text += DateTime.Now + "; Exported to Delta HMI tags - " + path;
+            }
         }
     }
 }

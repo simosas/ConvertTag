@@ -122,16 +122,6 @@ namespace ConvertTagWF
         };
 
 
-        public struct SchneiderTag
-        {
-            public string Name;
-            public string Type;
-            public int ArrayMin;
-            public int ArrayMax;
-            public SchneiderTag[] TagList;
-            public int MemUsage;
-            public string Comment;
-        }
 
         static void DeltaSiemensHmiOPCUA(string file)
         {
