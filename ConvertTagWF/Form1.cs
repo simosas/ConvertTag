@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 using static ConvertTagWF.Program;
 using DocumentFormat.OpenXml.Office2021.Excel.RichDataWebImage;
 using System.Net.Security;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Office2019.Presentation;
 
 
 namespace ConvertTagWF
@@ -133,24 +135,42 @@ namespace ConvertTagWF
 
         };
 
+        public static Dictionary<string, string> SchneiderSiemensHmiTypes = new Dictionary<string, string>()
+        {
+            {"DINT", "+/- Double" }, {"INT", "+/- Int"}, {"WORD", "Int"}, {"STRING", "ASCII"}, {"BOOL", "BIT"}, {"UDINT", "DOUBLE"},
+            {"REAL", "Float" }, {"UINT", "Int"}, {"DWORD", "DOUBLE"}, {"BYTE", "BIT"}, {"LWORD", "DOUBLE"}, {"SINT", "BIT"}, {"USINT", "BIT"},
+            {"LINT", "+- Double" }, {"ULINT", "DOUBLE"}, {"LREAL", "Float"}, {"WSTRING", "ASCII"}, {"TIME", "DOUBLE"}
+        };
+
+
+
+
+
+
+
+
+
+
+        //  * +/ -Double = DINT, +/- INT, 16 bit group = Word, ASCII = String, Bit = Bool,
+        // * Double = UDINT, Float = Real, Int = UINT, 
         public static string DefaultDeltaHmiTags = "WALARM_GROUP,WORD,$1,\nALARM_FILTER,WORD,$12,\nNENAUDOJAMAS1,BIT,$13.01,\nNENAUDOJAMAS2,BIT,$13.02,\nNENAUDOJAMAS3,BIT,$13.03,\nNENAUDOJAMAS4,BIT,$13.04,\nNENAUDOJAMAS5,BIT,$13.05,\nWRECIPE_CUTPAGE,WORD,$2,\nWRECIPE_TOTALPAGE,WORD,$3,\nBRECIPE_PAGEUP,BIT,$4.00,\nBRECIPE_PAGEDOWN,BIT,$4.01,\nBCOPY,BIT,$5.00,\nBPASTE,BIT,$5.01,\nBREPLACE,BIT,$5.02,\nBINSERT,BIT,$5.03,\nBCUT,BIT,$5.04,\nEMPTY_STRING,WORD,$6,\nALARM_SORTING,WORD,$7,\nWALARM_SORTING_CONTROL_ADDR,WORD,$10,\nWALARM_SORT_ADDR,WORD,$11,\nRCP_NO_LATCH,WORD,$M100,\nBSENDTOROBOTREMINDER,BIT,$M101.00,\nWPRODUCT_NAME,WORD,RCP0,\nUpdateRCPw_OK,WORD,$100,\nUpdateRCPw_offsetDest,WORD,$101,\nUpdateRCPw_offsetSrc,WORD,$102,\nUpdateRCPw_arrLen,WORD,$103,";
 
 
 
 
-        static void DeltaSiemensHmiOPCUA(string file)
+        static void DeltaSiemensHmiOPCUA(string file, string connection, string addr_prefix)
         {
 
             // delta .csv -> siemens .xlsx hmi tags
             StreamReader sr = new StreamReader(file);
 
-            Console.Write("connection:");
-            string connection = Console.ReadLine();
-            Console.Write("address prefix:"); //ns=urn:Schneider:M262:customprovider;s=Application.GVL.
-            string addr_prefix = Console.ReadLine();
+            //Console.Write("connection:");
+            //string connection = Console.ReadLine();
+            //Console.Write("address prefix:"); //ns=urn:Schneider:M262:customprovider;s=Application.GVL.
+            //string addr_prefix = Console.ReadLine();
             if (addr_prefix == string.Empty)
             {
-                addr_prefix = "ns=urn:Schneider:M262:customprovider;s=Application.";// galas (Application.) gali keistis?
+                addr_prefix = "ns=urn:Schneider:M262:customprovider;s=Application.GVL.";// galas (Application.) gali keistis?
             }
             using (var workbook = new XLWorkbook())
             {
@@ -199,6 +219,7 @@ namespace ConvertTagWF
 
 
         }
+        /*
         static void DeltaSiemensHmiModbus(string file)
         {
 
@@ -298,13 +319,13 @@ namespace ConvertTagWF
 
         }
 
-
-        static void SchneiderSiemensHmiOPC(string file)
+        */
+        static void SchneiderSiemensHmiOPC(string file, string connection, string addr_prefix)
         {
-            Console.Write("connection:");
-            string connection = Console.ReadLine();
-            Console.Write("address prefix:"); //ns=urn:Schneider:M262:customprovider;s=Application.GVL.
-            string addr_prefix = Console.ReadLine();
+            //Console.Write("connection:");
+            //string connection = Console.ReadLine();
+            //Console.Write("address prefix:"); //ns=urn:Schneider:M262:customprovider;s=Application.GVL.
+            //string addr_prefix = Console.ReadLine();
             if (addr_prefix == string.Empty)
             {
                 addr_prefix = "ns=urn:Schneider:M262:customprovider;s=Application.GVL.";
@@ -379,7 +400,7 @@ namespace ConvertTagWF
             }
         }
 
-        static void DeltaSiemensPlcDB(string file)
+        static void DeltaSiemensPlcDBConv(string file)
         {
 
 
@@ -425,7 +446,7 @@ namespace ConvertTagWF
         } //delta - siemens db tags
 
 
-        static void SchneiderSiemensPlcDB(string file)
+        static void SchneiderSiemensPlcDBConv(string file)
         {
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(file);
@@ -743,19 +764,7 @@ namespace ConvertTagWF
         }
 
 
-        static void DeltaIspSiemensDB(string file)
-        {
-            // .csv failas panasus i delta dopsoft tagus 
-        }
 
-        static void DeltaIspSiemensProg(string file)
-        {
-            /*unzippint .mpu failus (ten .rar), isimt Unzipped.src, perskaityt kaip tekstini faila
-             * skiriasi FB ir PRG tipai (?)
-             * input/output vars(?)
-             * atskirt LAD ir ST blokus
-            */
-        }
 
 
 
@@ -914,7 +923,7 @@ namespace ConvertTagWF
                                 i++;
                                 continue;
                             }
-                                
+
 
 
                             // paimt viska tarp : ir ; , isimt tarpus, padaryt didziasias raides
@@ -1024,7 +1033,7 @@ namespace ConvertTagWF
                     struct_memlength = Math.Ceiling(struct_memlength / 64.0) * 64; // padalint is 64, suapvalint i virsu, padaugint is 64 kad gaut kiek atminties rezervuos
                     try
                     {
-                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength -7)); // nezinau kodel -7 bet kazkur prisideda tiek per daug ir atimant susitaiso
+                        SchneiderDataTypes.Add(struct_name, Convert.ToInt32(struct_memlength - 7)); // nezinau kodel -7 bet kazkur prisideda tiek per daug ir atimant susitaiso
                         SchneiderTypeMemIdentifiers.Add(struct_name, 'L');
                     }
                     catch
@@ -1363,7 +1372,7 @@ namespace ConvertTagWF
 
         }
 
-        static (int,string) ParseString(string text)
+        static (int, string) ParseString(string text)
         {
             if (text.ToUpper().Contains("WSTRING"))
             {
@@ -1381,7 +1390,7 @@ namespace ConvertTagWF
                     string_mem_usage = 80 * 16;
                 }
 
-                return (string_mem_usage,"WSTRING");
+                return (string_mem_usage, "WSTRING");
 
 
             }
@@ -1402,7 +1411,7 @@ namespace ConvertTagWF
                 return (string_mem_usage, "STRING");
 
             }
-            return (0,"");
+            return (0, "");
         }
         struct SchneiderVar
         {
@@ -1422,7 +1431,7 @@ namespace ConvertTagWF
         }
 
 
-        static void SchneiderToHmi(string mapped_vars, string etherlink_prefix, bool delta, string path) // bool delta = ar exportuot i delta (true) ar i siemens (false), path = kur saugoti
+        static void SchneiderToHmi(string mapped_vars, string etherlink_prefix, string siemensconnection, bool delta, string path) // bool delta = ar exportuot i delta (true) ar i siemens (false), path = kur saugoti
         {
             /* mapped_vars = mapped schneider vars
              * etherlink_prefix = default {EtherLink1}1@W4- , galima pakeist textboxe
@@ -1460,7 +1469,7 @@ namespace ConvertTagWF
                             string type = (lines[i].Substring(lines[i].IndexOf(':') + 1, lines[i].IndexOf(";") - (lines[i].IndexOf(':') + 1))).ToUpper();
                             if (type.Contains(":="))
                                 type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
-                            
+
                             if (!type.Contains("[") && !type.Contains("]"))
                                 type = type.Replace(" ", "");
                             type = type.ToUpper();
@@ -1473,7 +1482,7 @@ namespace ConvertTagWF
                                     // jei wstring dydis deklaruotas skliaustuose:
                                     string string_length = type.Substring(type.IndexOf('(') + 1, type.IndexOf(')') - type.IndexOf('(') - 1); //paimt skaiciu tarp skliausteliu
                                     string_mem_usage = Convert.ToInt32(string_length) * 16;
-                                    
+
                                 }
                                 else
                                 {
@@ -1525,7 +1534,7 @@ namespace ConvertTagWF
 
 
 
-                                        
+
 
                                     }
                                     else
@@ -1534,11 +1543,11 @@ namespace ConvertTagWF
                                         //i++;
                                     }
                                 }
-                                
+
                                 type = type.Replace(" ", "");
                                 if (schneiderVar.MemUsage == 0)
                                     schneiderVar.MemUsage = SchneiderDataTypes[type];
-                               
+
 
                             }
                             sch_struct.VarList.Add(schneiderVar);
@@ -1564,7 +1573,7 @@ namespace ConvertTagWF
                     string type = (parsed_line.Substring(parsed_line.IndexOf(':') + 1, parsed_line.IndexOf(";") - (parsed_line.IndexOf(':') + 1))).ToUpper();
                     string varname = parsed_line.Substring(0, parsed_line.IndexOf(':'));
                     int var_mem_usage = 0;
-                   // varname = varname.Replace("\t", ""); // tab ismetimas
+                    // varname = varname.Replace("\t", ""); // tab ismetimas
                     //varname = varname.Replace(" ", ""); // tarpu ismetimas
                     if (type.Contains(":="))
                         type = type.Remove(type.IndexOf("=") - 1); //atsikratyt priskyrimu
@@ -1590,7 +1599,7 @@ namespace ConvertTagWF
                             };
                             tags.Add(tag);
                         }
-                        
+
                     }
                     else if (type.Contains("STRING"))
                     {
@@ -1606,7 +1615,7 @@ namespace ConvertTagWF
                             };
                             tags.Add(tag);
                         }
-                        
+
 
                     }
                     else
@@ -1623,7 +1632,7 @@ namespace ConvertTagWF
                                     if (!str.VarList[j].Name.Contains("//"))
                                     {
                                         SchneiderVar tempvar = str.VarList[j];
-                                        if (j+1 == str.VarList.Count)
+                                        if (j + 1 == str.VarList.Count)
                                         {
                                             tempvar.IsLastStructVar = true;
                                         }
@@ -1631,14 +1640,14 @@ namespace ConvertTagWF
                                         {
                                             tempvar.IsFirstStructVar = true;
                                         }
-                                            
+
                                         tempvar.Name = varname.Replace("\t", "") + "_" + str.VarList[j].Name;
                                         tags.Add(tempvar);
                                     }
-                                        
+
                                 }
-                                    
-                                
+
+
 
                             }
                         }
@@ -1654,18 +1663,18 @@ namespace ConvertTagWF
                                     Type = type
                                 };
                                 tags.Add(tag);
-                            }    
-                            
+                            }
+
                         }
-                        
-                        
+
+
 
                     }
 
 
                 }
             }
-            if (delta) // todo: padaryt bendresne funkcija kad nereiketu copy pastint kodo daug 
+            if (delta) // 
             {
                 double word_tracker = 1;
                 List<string> deltastrings = new();
@@ -1693,28 +1702,27 @@ namespace ConvertTagWF
                 //bool lastvar_fromstruct = false;
                 foreach (SchneiderVar var in tags)
                 {
-                    
-                   
+
                     string clean_name = var.Name.Replace("\t", "");
                     string type = (var.MemUsage > 8) ? "WORD" : "BIT";
                     string mem_address = etherlink_prefix;
                     if (var.IsFirstStructVar)
                     {
-                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker-1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
+                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker - 1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
                         word_tracker++; //grazinam atimta 1
                     }
-                         
+
                     if (var.MemUsage == 8)
                     {
                         if (word_tracker - Math.Floor(word_tracker) == 0.5)
                         {
-                            mem_address += Math.Floor(word_tracker) +  ".08";
+                            mem_address += Math.Floor(word_tracker) + ".08";
                         }
                         else
                         {
                             mem_address += Math.Floor(word_tracker) + ".00";
                         }
-                        
+
                         word_tracker += 0.5;
                     }
                     else
@@ -1752,14 +1760,14 @@ namespace ConvertTagWF
                             }
 
 
-                            
+
                             if (((word_tracker - 1) * 16) % standard_mem_size != 0)    // ta pati logika kaip mappinime, persokt kai kurias teoriskai laisvas atmintis kad sulygint su schneiderio atminties logika
                                 word_tracker += ((standard_mem_size / 16) - 1);  //nereikia -1-u ?
 
                         }
                         mem_address += word_tracker;
                         word_tracker += (var.MemUsage / 16);
-                        
+
                     }
                     if (var.IsLastStructVar)
                     {
@@ -1769,7 +1777,7 @@ namespace ConvertTagWF
                     string newline = clean_name + "," + type + "," + mem_address + ",";
                     deltastrings.Add(newline);
 
-                   
+
 
                 }
 
@@ -1778,19 +1786,166 @@ namespace ConvertTagWF
                     string templine = line.Replace("\t", "");
                     templine = templine.Replace(" ", "");
                     writer.WriteLine(templine);
-                    
+
                 }
-                    
+
                 writer.Close();
 
             }
 
             if (!delta)
             {
-                //rasymas i siemens
+
+                /*rasymas i siemens
+                 *nukopijuot is rasymo i delta, tik issaugot duomenu tipus(isskyrus array ir struct, jiem taikyt ta pacia logika)
+                 * susirasyt kokie tipai siemens hmi modbus galimi?
+                 * exportintam excelyje DataType = modbus tipas, HMI Data type = HMI duomenu tipas
+                 * +/-Double = DINT, +/- INT, 16 bit group = Word, ASCII = String, Bit = Bool,
+                 * Double = UDINT, Float = Real, Int = UINT, 
+                 * 
+                 * ASCII parasyta kad yra wstring bet is tikruju dydis baitais tai gaunasi string?
+                 * visi tipai egzistuoja schneideryje irgi tai galima pasidaryt konvertavimo dictionary 
+                 * excelyje reikalingas puslapis pavadinimu hmi tags ir stulpeliai: Name, Connection, DataType, HMI DataType, Length, Access Method, Address
+                 * */
+                double word_tracker = 1;
+                List<string> siemensstrings = new();
+                foreach (SchneiderVar var in tags)
+                {
+
+                    string clean_name = var.Name.Replace("\t", "").Replace(" ", "");
+                    string type = "";
+                    if (var.Type.Contains("ARRAY"))
+                    {
+                        int tmp1, tmp2;
+                        string arr_type;
+                        (tmp1, tmp2, arr_type) = ParseArray(var.Type);
+                        type = arr_type;
+                    }
+                    else
+                    {
+                        type = var.Type;
+                    }
+
+                    string mem_address = "4x4";
+                    if (var.IsFirstStructVar)
+                    {
+                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker - 1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
+                        word_tracker++; //grazinam atimta 1
+                    }
+
+                    if (var.MemUsage == 8)
+                    {
+                        if (word_tracker - Math.Floor(word_tracker) == 0.5)
+                        {
+                            for (int i = 0; i < (5 - Math.Floor(word_tracker).ToString().Length); i++)
+                            {
+                                mem_address += "0";
+                            }
+                            mem_address += Math.Floor(word_tracker) + ".9";
+                        }
+                        else
+                        {
+                            for (int i = 0; i < (5 - Math.Floor(word_tracker).ToString().Length); i++)
+                            {
+                                mem_address += "0";
+                            }
+                            mem_address += Math.Floor(word_tracker) + ".1";
+                        }
+
+                        word_tracker += 0.5;
+                    }
+                    else
+                    {
+                        word_tracker = Math.Ceiling(word_tracker);
+                        if (var.MemUsage > 16)
+                        {
+                            int standard_mem_size = 0;
+                            if (var.Type == "WSTRING")
+                            {
+                                standard_mem_size = 16;
+                            }
+                            else if (var.Type == "STRING")
+                            {
+                                standard_mem_size = 8;
+                            }
+                            else if (var.Type.Contains("ARRAY"))
+                            {
+                                int temp1, temp2;
+                                string ar_type;
+                                (temp1, temp2, ar_type) = ParseArray(var.Type);
+                                standard_mem_size = SchneiderDataTypesOriginal[ar_type]; // jei array of struct gali kilt problemu?
+                            }
+                            else
+                            {
+                                try
+                                {
+
+                                    standard_mem_size = SchneiderDataTypesOriginal[var.Type];
+                                }
+                                catch
+                                {
+                                    standard_mem_size = 64; // del visa ko, jei kazkas praslystu
+                                }
+                            }
+
+
+
+                            if (((word_tracker - 1) * 16) % standard_mem_size != 0)    // ta pati logika kaip mappinime, persokt kai kurias teoriskai laisvas atmintis kad sulygint su schneiderio atminties logika
+                                word_tracker += ((standard_mem_size / 16) - 1);  //nereikia -1-u ?
+
+                        }
+                        for (int i = 0; i < (5 - Math.Floor(word_tracker).ToString().Length); i++)
+                        {
+                            mem_address += "0";
+                        }
+                        mem_address += word_tracker;
+                        word_tracker += (var.MemUsage / 16);
+
+                    }
+                    if (var.IsLastStructVar)
+                    {
+                        word_tracker = (Convert.ToInt32(Math.Ceiling(word_tracker - 1)) + 3) & ~3; // -1 nes pradedam nuo 1 word o ne 0, suapvalinimas iki artimiausio 4 daliklio (4 word = 64bit =long)
+                        word_tracker++; //grazinam atimta 1
+                    }
+                    string newline = clean_name + "," + type + "," + mem_address + ",";
+                    siemensstrings.Add(newline);
+
+
+
+                }
+                using (var workbook = new XLWorkbook())
+                {
+                    var worksheet = workbook.Worksheets.Add("Hmi Tags");
+                    worksheet.Cell("A1").Value = "Name";
+                    worksheet.Cell("B1").Value = "Connection";
+                    worksheet.Cell("C1").Value = "DataType";
+                    //worksheet.Cell("D1").Value = "HMI DataType";
+                    worksheet.Cell("D1").Value = "Length";
+                    worksheet.Cell("E1").Value = "Access Method";
+                    worksheet.Cell("F1").Value = "Address";
+                    // Name, Connection, DataType, Length, Access Method, Address    buvo hmi datatype, bet nereikalingas nes tik prideda warningu siemense
+                    int count = 2;
+                    foreach (string s in siemensstrings)
+                    {
+                        string[] attribs = s.Split(','); // name, type, address, tuscia
+                        worksheet.Cell("A" + count).Value = attribs[0]; //name 
+                        worksheet.Cell("B" + count).Value = siemensconnection; //connection
+                        worksheet.Cell("C" + count).Value = SchneiderSiemensHmiTypes[attribs[1]]; ; //datatype (modbus)
+                        //worksheet.Cell("D" + count).Value = attribs[1]; // hmi data type (identiskai schneider)
+                        worksheet.Cell("D" + count).Value = (SchneiderDataTypes[attribs[1]] / 8); // length(baitais)
+                        worksheet.Cell("E" + count).Value = "Absolute access"; // access method
+                        worksheet.Cell("F" + count).Value = attribs[2]; // address
+                        count++;
+                    }
+
+
+
+
+                    workbook.SaveAs(path);
+                }
             }
-            
-            
+
+
 
         }
 
@@ -1861,7 +2016,7 @@ namespace ConvertTagWF
             if (exportedfile.ShowDialog() == DialogResult.OK)
             {
                 string path = exportedfile.FileName;
-                SchneiderToHmi(OutputTextBox.Text, "", false, path);
+                SchneiderToHmi(OutputTextBox.Text, "", SiemensModbusConnection.Text, false, path);
                 ResultsTextBox.Text += DateTime.Now + "; Exported to Siemens HMI tags - " + path + "\n";
             }
         }
@@ -1876,7 +2031,7 @@ namespace ConvertTagWF
                 newline += RemoveMapped(line) + "\n";
             }
             OutputTextBox.Text = newline;
-            ResultsTextBox.Text += DateTime.Now + "; Unmapped vars" + "\n"; 
+            ResultsTextBox.Text += DateTime.Now + "; Unmapped vars" + "\n";
         }
 
 
@@ -1889,9 +2044,135 @@ namespace ConvertTagWF
             if (exportedfile.ShowDialog() == DialogResult.OK)
             {
                 string path = exportedfile.FileName;
-                SchneiderToHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text, true, path);
+                SchneiderToHmi(OutputTextBox.Text, DeltaEtherlinkTextBox.Text, "", true, path);
                 ResultsTextBox.Text += DateTime.Now + "; Exported to Delta HMI tags - " + path + "\n";
             }
+        }
+
+        private void OpenFileButton_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openfile = new OpenFileDialog();
+
+            if (openfile.ShowDialog() == DialogResult.OK)
+            {
+                InputTextBox.Text = File.ReadAllText(openfile.FileName);
+                ResultsTextBox.Text += DateTime.Now + "; Opened file: " + openfile.FileName + "\n";
+
+            }
+
+
+
+        }
+
+        private void SaveInputTxtButton_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog exportedfile = new SaveFileDialog
+            {
+                Filter = "Text file (*.txt)|*.txt"
+            };
+            if (exportedfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = exportedfile.FileName;
+                File.WriteAllText(path, InputTextBox.Text);
+                ResultsTextBox.Text += DateTime.Now + "; Saved input to  " + path + "\n";
+            }
+        }
+
+        private void SaveOutputTxtButton_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog exportedfile = new SaveFileDialog
+            {
+                Filter = "Text file (*.txt)|*.txt"
+            };
+            if (exportedfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = exportedfile.FileName;
+                File.WriteAllText(path, OutputTextBox.Text);
+                ResultsTextBox.Text += DateTime.Now + "; Saved output to  " + path + "\n";
+            }
+        }
+
+        private void DeltaToSiemensOpc_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog deltafile = new OpenFileDialog();
+            deltafile.Filter = "Comma-separated values (*.csv)|*.csv";
+            if (deltafile.ShowDialog() == DialogResult.OK)
+            {
+                string path = deltafile.FileName;
+                DeltaSiemensHmiOPCUA(path, SiemensModbusConnection.Text, SiemensOpcPrefixTextBox.Text);
+                ResultsTextBox.Text += DateTime.Now + "; Converted  " + path + " to  Siemens HMI (opc ua)\n";
+            }
+        }
+
+        private void SchneiderToSiemensOPC_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog schneiderfile = new OpenFileDialog();
+            schneiderfile.Filter = "Schneider tag export XML (*.xml)|*.xml";
+            if (schneiderfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = schneiderfile.FileName;
+                SchneiderSiemensHmiOPC(path, SiemensModbusConnection.Text, SiemensOpcPrefixTextBox.Text);
+
+                ResultsTextBox.Text += DateTime.Now + "; Converted  " + path + " to Siemens HMI (opc ua)\n";
+            }
+        }
+
+        private void SchneiderStlToScl_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog schneiderfile = new OpenFileDialog();
+            schneiderfile.Filter = "Schneider program export XML (*.xml)|*.xml";
+            if (schneiderfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = schneiderfile.FileName;
+                SchneiderSiemensProgramBlocks(path);
+
+                ResultsTextBox.Text += DateTime.Now + "; Converted  " + path + " to Siemens .scl\n";
+            }
+        }
+
+        private void DeltaBankToSiemensList_Click(object sender, EventArgs e)
+        {
+            // todo - reikia kad DeltaBankToSiemensList funkcija kazkaip rastu kur kuri kalba yra nes dabar hardcoded
+        }
+
+        private void DeltaSiemensPlcDB_Click(object sender, EventArgs e)
+        {
+
+            OpenFileDialog deltafile = new OpenFileDialog();
+            deltafile.Filter = "Comma-separated values (*.csv)|*.csv";
+            if (deltafile.ShowDialog() == DialogResult.OK)
+            {
+                string path = deltafile.FileName;
+                DeltaSiemensPlcDBConv(path);
+                ResultsTextBox.Text += DateTime.Now + "; Converted  " + path + " to Siemens PLC DB \n";
+            }
+        }
+
+        private void SchneiderSiemensPlcDB_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog schneiderfile = new OpenFileDialog();
+            schneiderfile.Filter = "Schneider tag export XML (*.xml)|*.xml";
+            if (schneiderfile.ShowDialog() == DialogResult.OK)
+            {
+                string path = schneiderfile.FileName;
+                SchneiderSiemensPlcDBConv(path);
+
+                ResultsTextBox.Text += DateTime.Now + "; Converted  " + path + " to Siemens PLC DB\n";
+            }
+        }
+
+        private void HelpButton_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Input - left textbox, output - right textbox.\n\n " +
+                "Re-map addresses ::: uncheck to keep existing mappings, check to assign new mappings\n\n" + 
+                "Send output to clipboard ::: check to automatically copy output text after mapping operation.\n\n" +
+                "Unmap ::: remove mappings from input and write to output.\n\n"+
+                "Output -> Delta HMI ::: text box above specifies modbus address prefix.\n\n"
+                +"Output -> Siemens HMI(Modbus) ::: text box above specifies connection name in TIA Portal.\n\n"+
+                "Delta/Schneider - > Siemens HMI (OPC UA) ::: uses connection name above modbus button. Also requires opc prefix in textbox above.\n\n" +
+                "Schneider STL - Siemens SCL ::: some code can have errors because of special functions.\n\n" +
+                "Schneider - Siemens PLC DB ::: extra .udt files can be created for schneider structs.");
+           
         }
     }
 }
